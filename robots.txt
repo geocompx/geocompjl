@@ -1,1 +1,1 @@
-Sitemap: https://jl.geocompx.org/sitemap.xml
+Sitemap: https://geocompx.github.io/geocompjl/sitemap.xml

@@ -10,7 +10,7 @@ book:
   description: |
     An introductory resource for working with geographic data in Julia
   #cover-image: https://geocompx.org/static/img/book_cover_py_tmp_small.png
-  site-url: https://jl.geocompx.org
+  site-url: https://geocompx.github.io/geocompjl/
   repo-url: https://github.com/geocompx/geocompjl/
   repo-branch: main
   repo-actions: [edit]

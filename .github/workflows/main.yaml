@@ -1,26 +1,26 @@
 on:
+  workflow_dispatch:
   push:
     branches:
       [main]
-name: Render
+name: Quarto Publish
 jobs:
   bookdown:
     name: GH-Pages
     runs-on: ubuntu-latest
-    container: ghcr.io/geocompx/docker:julia
-    defaults:
-      run:
-        shell: bash -l {0}
-    env:
-      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v3
       - uses: julia-actions/setup-julia@v2
       - uses: quarto-dev/quarto-actions/render@v2
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
+     
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Render and Publish
+        uses: quarto-dev/quarto-actions/publish@v2
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
-          publish_branch: gh-pages
-          commit_message: 'Deploy commit: ${{ github.event.head_commit.message }}'
+          target: gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

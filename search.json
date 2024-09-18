@@ -4,9 +4,89 @@
     "href": "index.html",
     "title": "Geocomputation with Julia",
     "section": "",
-    "text": "Welcome\nThis is the online home of Geocomputation with Julia, a book on reproducible geographic data analysis with open source software.\n\n\n\nHello geocompx World",
+    "text": "Welcome\nThis is the online home of Geocomputation with Julia, a book on reproducible geographic data analysis with open source software.\nInspired by the Free and Open Source Software for Geospatial (FOSS4G) movement this is an open source book. Find the code underlying the geocompjl project on GitHub, ensuring that the content is reproducible, transparent, and accessible. Making the book open source allows you or anyone else, to interact with the project by opening issues, making typo fixes and more, for the benefit of everyone.\nThis book is part of the geocompx series, following the popular R and Python editions.\nThe book’s website is built by GitHub Actions, which runs the code every time we make a change, ensuring code correctness and reproducibility. The current build status as follows:\n\nFor details on reproducing the book, see the README in the project’s GitHub repo: https://github.com/geocompx/geocompjl.\n\nprint(\"Hello geocompx World\")\n\nHello geocompx World",
     "crumbs": [
       "Welcome"
+    ]
+  },
+  {
+    "objectID": "chapters/01-spatial-data.html",
+    "href": "chapters/01-spatial-data.html",
+    "title": "2  Geographic data in Julia",
+    "section": "",
+    "text": "2.1 Introduction\nusing GeoDataFrames\ndf = GeoDataFrames.read(\"../data/world.gpkg\")\n\n177×11 DataFrame152 rows omitted\n\n\n\nRow\ngeom\niso_a2\nname_long\ncontinent\nregion_un\nsubregion\ntype\narea_km2\npop\nlifeExp\ngdpPercap\n\n\n\nIGeometr…\nString?\nString\nString\nString\nString\nString\nFloat64\nFloat64?\nFloat64?\nFloat64?\n\n\n\n\n1\nGeometry: wkbMultiPolygon\nFJ\nFiji\nOceania\nOceania\nMelanesia\nSovereign country\n19290.0\n885806.0\n69.96\n8222.25\n\n\n2\nGeometry: wkbMultiPolygon\nTZ\nTanzania\nAfrica\nAfrica\nEastern Africa\nSovereign country\n9.32746e5\n5.22349e7\n64.163\n2402.1\n\n\n3\nGeometry: wkbMultiPolygon\nEH\nWestern Sahara\nAfrica\nAfrica\nNorthern Africa\nIndeterminate\n96270.6\nmissing\nmissing\nmissing\n\n\n4\nGeometry: wkbMultiPolygon\nCA\nCanada\nNorth America\nAmericas\nNorthern America\nSovereign country\n1.0036e7\n3.55353e7\n81.953\n43079.1\n\n\n5\nGeometry: wkbMultiPolygon\nUS\nUnited States\nNorth America\nAmericas\nNorthern America\nCountry\n9.51074e6\n3.18623e8\n78.8415\n51922.0\n\n\n6\nGeometry: wkbMultiPolygon\nKZ\nKazakhstan\nAsia\nAsia\nCentral Asia\nSovereign country\n2.72981e6\n1.72883e7\n71.62\n23587.3\n\n\n7\nGeometry: wkbMultiPolygon\nUZ\nUzbekistan\nAsia\nAsia\nCentral Asia\nSovereign country\n4.6141e5\n3.07577e7\n71.039\n5370.87\n\n\n8\nGeometry: wkbMultiPolygon\nPG\nPapua New Guinea\nOceania\nOceania\nMelanesia\nSovereign country\n4.6452e5\n7.75578e6\n65.23\n3709.08\n\n\n9\nGeometry: wkbMultiPolygon\nID\nIndonesia\nAsia\nAsia\nSouth-Eastern Asia\nSovereign country\n1.81925e6\n2.55131e8\n68.856\n10003.1\n\n\n10\nGeometry: wkbMultiPolygon\nAR\nArgentina\nSouth America\nAmericas\nSouth America\nSovereign country\n2.78447e6\n4.29815e7\n76.252\n18797.5\n\n\n11\nGeometry: wkbMultiPolygon\nCL\nChile\nSouth America\nAmericas\nSouth America\nSovereign country\n8.14844e5\n1.76138e7\n79.117\n22195.3\n\n\n12\nGeometry: wkbMultiPolygon\nCD\nDemocratic Republic of the Congo\nAfrica\nAfrica\nMiddle Africa\nSovereign country\n2.32349e6\n7.37229e7\n58.782\n785.347\n\n\n13\nGeometry: wkbMultiPolygon\nSO\nSomalia\nAfrica\nAfrica\nEastern Africa\nSovereign country\n4.84333e5\n1.35131e7\n55.467\nmissing\n\n\n⋮\n⋮\n⋮\n⋮\n⋮\n⋮\n⋮\n⋮\n⋮\n⋮\n⋮\n⋮\n\n\n166\nGeometry: wkbMultiPolygon\nET\nEthiopia\nAfrica\nAfrica\nEastern Africa\nSovereign country\n1.13239e6\n9.73668e7\n64.535\n1424.53\n\n\n167\nGeometry: wkbMultiPolygon\nDJ\nDjibouti\nAfrica\nAfrica\nEastern Africa\nSovereign country\n21880.3\n912164.0\n62.006\nmissing\n\n\n168\nGeometry: wkbMultiPolygon\nmissing\nSomaliland\nAfrica\nAfrica\nEastern Africa\nIndeterminate\n1.6735e5\nmissing\nmissing\nmissing\n\n\n169\nGeometry: wkbMultiPolygon\nUG\nUganda\nAfrica\nAfrica\nEastern Africa\nSovereign country\n2.45768e5\n3.88333e7\n59.224\n1637.28\n\n\n170\nGeometry: wkbMultiPolygon\nRW\nRwanda\nAfrica\nAfrica\nEastern Africa\nSovereign country\n23365.4\n1.13454e7\n66.188\n1629.87\n\n\n171\nGeometry: wkbMultiPolygon\nBA\nBosnia and Herzegovina\nEurope\nEurope\nSouthern Europe\nSovereign country\n50605.1\n3.566e6\n76.561\n10516.8\n\n\n172\nGeometry: wkbMultiPolygon\nMK\nMacedonia\nEurope\nEurope\nSouthern Europe\nSovereign country\n25062.3\n2.0775e6\n75.384\n12298.5\n\n\n173\nGeometry: wkbMultiPolygon\nRS\nSerbia\nEurope\nEurope\nSouthern Europe\nSovereign country\n76388.6\n7.13058e6\n75.3366\n13112.9\n\n\n174\nGeometry: wkbMultiPolygon\nME\nMontenegro\nEurope\nEurope\nSouthern Europe\nSovereign country\n13443.7\n621810.0\n76.712\n14796.6\n\n\n175\nGeometry: wkbMultiPolygon\nXK\nKosovo\nEurope\nEurope\nSouthern Europe\nSovereign country\n11230.3\n1.8218e6\n71.0976\n8698.29\n\n\n176\nGeometry: wkbMultiPolygon\nTT\nTrinidad and Tobago\nNorth America\nAmericas\nCaribbean\nSovereign country\n7737.81\n1.35449e6\n70.426\n31181.8\n\n\n177\nGeometry: wkbMultiPolygon\nSS\nSouth Sudan\nAfrica\nAfrica\nEastern Africa\nSovereign country\n6.24909e5\n1.1531e7\n55.817\n1935.88\nusing CairoMakie\nusing GeoMakie\n\nf, a, p = poly(df.geom)",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Geographic data in Julia</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/02-attribute-operations.html",
+    "href": "chapters/02-attribute-operations.html",
+    "title": "3  Attribute data operations",
+    "section": "",
+    "text": "Prerequisites",
+    "crumbs": [
+      "<span class='chapter-number'>3</span>  <span class='chapter-title'>Attribute data operations</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/03-spatial-operations.html",
+    "href": "chapters/03-spatial-operations.html",
+    "title": "4  Spatial data operations",
+    "section": "",
+    "text": "Prerequisites",
+    "crumbs": [
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Spatial data operations</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/04-geometry-operations.html",
+    "href": "chapters/04-geometry-operations.html",
+    "title": "5  Geometry operations",
+    "section": "",
+    "text": "Prerequisites",
+    "crumbs": [
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Geometry operations</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/05-raster-vector.html",
+    "href": "chapters/05-raster-vector.html",
+    "title": "6  Raster-vector interactions",
+    "section": "",
+    "text": "Prerequisites",
+    "crumbs": [
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Raster-vector interactions</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/06-reproj.html",
+    "href": "chapters/06-reproj.html",
+    "title": "7  Reprojecting geographic data",
+    "section": "",
+    "text": "Prerequisites",
+    "crumbs": [
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Reprojecting geographic data</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/07-read-write.html",
+    "href": "chapters/07-read-write.html",
+    "title": "8  Geographic data I/O",
+    "section": "",
+    "text": "Prerequisites",
+    "crumbs": [
+      "<span class='chapter-number'>8</span>  <span class='chapter-title'>Geographic data I/O</span>"
+    ]
+  },
+  {
+    "objectID": "chapters/08-mapping.html",
+    "href": "chapters/08-mapping.html",
+    "title": "9  Making maps with Julia",
+    "section": "",
+    "text": "Prerequisites",
+    "crumbs": [
+      "<span class='chapter-number'>9</span>  <span class='chapter-title'>Making maps with Julia</span>"
     ]
   }
 ]

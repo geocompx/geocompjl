@@ -6,10 +6,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="Maarten Pronk, Rafael Schouten, Anshul Singhvi, Felix Cramer and Jakub Nowosad.">
-<meta name="description" content="<p>This book will teach you how to work with geographic data in Julia. It’s a short and practical open source book in which you’ll develop and use geocomputation to solve practical problems and lay the foundations for advanced geospatial applications.</p>">
+<meta name="description" content="An introductory resource for working with geographic data in Julia">
 
-<title>Geocomputation with Julia</title>
+<title>2&nbsp; Geographic data in Julia – Geocomputation with Julia</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -59,23 +58,24 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
-<script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
-<link href="./chapters/preface.html" rel="next">
-<script src="site_libs/quarto-html/quarto.js"></script>
-<script src="site_libs/quarto-html/popper.min.js"></script>
-<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="site_libs/quarto-html/anchor.min.js"></script>
-<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/02-attribute-operations.html" rel="next">
+<link href="../chapters/preface.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "sidebar",
   "copy-button": false,
@@ -103,6 +103,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-label": "Search"
   }
 }</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
 
 </head>
@@ -116,7 +119,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./index.html">Welcome</a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01-spatial-data.html"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Geographic data in Julia</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -131,7 +134,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
-      <a href="./">Geocomputation with Julia</a> 
+      <a href="../">Geocomputation with Julia</a> 
         <div class="sidebar-tools-main">
     <a href="https://github.com/geocompx/geocompjl/" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
     <div class="dropdown">
@@ -169,67 +172,67 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <ul class="list-unstyled mt-1">
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./index.html" class="sidebar-item-text sidebar-link active">
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Welcome</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./chapters/preface.html" class="sidebar-item-text sidebar-link">
+  <a href="../chapters/preface.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Preface</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./chapters/01-spatial-data.html" class="sidebar-item-text sidebar-link">
+  <a href="../chapters/01-spatial-data.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Geographic data in Julia</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./chapters/02-attribute-operations.html" class="sidebar-item-text sidebar-link">
+  <a href="../chapters/02-attribute-operations.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Attribute data operations</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./chapters/03-spatial-operations.html" class="sidebar-item-text sidebar-link">
+  <a href="../chapters/03-spatial-operations.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Spatial data operations</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./chapters/04-geometry-operations.html" class="sidebar-item-text sidebar-link">
+  <a href="../chapters/04-geometry-operations.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Geometry operations</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./chapters/05-raster-vector.html" class="sidebar-item-text sidebar-link">
+  <a href="../chapters/05-raster-vector.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Raster-vector interactions</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./chapters/06-reproj.html" class="sidebar-item-text sidebar-link">
+  <a href="../chapters/06-reproj.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Reprojecting geographic data</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./chapters/07-read-write.html" class="sidebar-item-text sidebar-link">
+  <a href="../chapters/07-read-write.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Geographic data I/O</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./chapters/08-mapping.html" class="sidebar-item-text sidebar-link">
+  <a href="../chapters/08-mapping.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Making maps with Julia</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./references.html" class="sidebar-item-text sidebar-link">
+  <a href="../references.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">References</span></a>
   </div>
 </li>
@@ -250,35 +253,24 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#welcome" id="toc-welcome" class="nav-link" data-scroll-target="#welcome">Welcome</a></li>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link" data-scroll-target="#introduction"><span class="header-section-number">2.1</span> Introduction</a></li>
   </ul>
-<div class="toc-actions"><ul><li><a href="https://github.com/geocompx/geocompjl/edit/main/index.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></nav>
+<div class="toc-actions"><ul><li><a href="https://github.com/geocompx/geocompjl/edit/main/chapters/01-spatial-data.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Geocomputation with Julia</h1>
+<h1 class="title"><span id="sec-spatial-class" class="quarto-section-identifier"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Geographic data in Julia</span></span></h1>
 </div>
 
 <!--
-<div>
-  <div class="description">
-    <p>An introductory resource for working with geographic data in Julia</p>
-  </div>
-</div>
 -->
 
 
 <div class="quarto-title-meta">
 
-    <div>
-    <div class="quarto-title-meta-heading">Author</div>
-    <div class="quarto-title-meta-contents">
-             <p>Maarten Pronk, Rafael Schouten, Anshul Singhvi, Felix Cramer and Jakub Nowosad. </p>
-          </div>
-  </div>
     
   
     
@@ -289,19 +281,425 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-
-<section id="welcome" class="level1 unnumbered">
-<h1 class="unnumbered">Welcome</h1><p><img src="https://geocompx.org/static/img/book_cover_py_tmp_small.png" title="Geocomputation with Julia" class="quarto-cover-image img-fluid"></p>
-<p>This is the online home of <em>Geocomputation with Julia</em>, a book on reproducible geographic data analysis with open source software.</p>
-<p>Inspired by the Free and Open Source Software for Geospatial (<a href="https://foss4g.org/">FOSS4G</a>) movement this is an <em>open source book</em>. Find the code underlying the <em>geocompjl</em> project on <a href="https://github.com/geocompx/geocompjl">GitHub</a>, ensuring that the content is reproducible, transparent, and accessible. Making the book open source allows you or anyone else, to interact with the project by opening <a href="https://github.com/geocompx/geocompjl/issues">issues</a>, making typo fixes and more, for the benefit of everyone.</p>
-<p>This book is part of the <em>geocompx</em> series, following the popular R and Python editions.</p>
-<p>The book’s website is built by GitHub Actions, which runs the code every time we make a change, ensuring code correctness and reproducibility. The current build status as follows:</p>
-<p><a href="https://github.com/geocompx/geocompjl/actions/workflows/main.yaml"><img src="https://github.com/geocompx/geocompjl/actions/workflows/main.yaml/badge.svg" class="img-fluid"></a></p>
-<p>For details on reproducing the book, see the README in the project’s GitHub repo: <a href="https://github.com/geocompx/geocompjl" class="uri">https://github.com/geocompx/geocompjl</a>.</p>
-<div id="2" class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="st">"Hello geocompx World"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Hello geocompx World</code></pre>
+<section id="introduction" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">2.1</span> Introduction</h2>
+<div id="4" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">GeoDataFrames</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> GeoDataFrames.<span class="fu">read</span>(<span class="st">"../data/world.gpkg"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<div><div style="float: left;"><span>177×11 DataFrame</span></div><div style="float: right;"><span style="font-style: italic;">152 rows omitted</span></div><div style="clear: both;"></div></div><div class="data-frame" style="overflow-x: scroll;">
+<table class="data-frame caption-top table table-sm table-striped small" data-quarto-postprocess="true">
+<thead>
+<tr class="header">
+<th class="rowNumber" data-quarto-table-cell-role="th" style="text-align: right; font-weight: bold;">Row</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">geom</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">iso_a2</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">name_long</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">continent</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">region_un</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">subregion</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">type</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">area_km2</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">pop</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">lifeExp</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">gdpPercap</th>
+</tr>
+<tr class="odd subheader headerLastRow">
+<th class="rowNumber" data-quarto-table-cell-role="th" style="text-align: right; font-weight: bold;"></th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="ArchGDAL.IGeometry{ArchGDAL.wkbMultiPolygon}">IGeometr…</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Union{Missing, String}">String?</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="String">String</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="String">String</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="String">String</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="String">String</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="String">String</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Float64">Float64</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Union{Missing, Float64}">Float64?</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Union{Missing, Float64}">Float64?</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th" title="Union{Missing, Float64}">Float64?</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">1</td>
+<td style="text-align: left;">Geometry: wkbMultiPolygon</td>
+<td style="text-align: left;">FJ</td>
+<td style="text-align: left;">Fiji</td>
+<td style="text-align: left;">Oceania</td>
+<td style="text-align: left;">Oceania</td>
+<td style="text-align: left;">Melanesia</td>
+<td style="text-align: left;">Sovereign country</td>
+<td style="text-align: right;">19290.0</td>
+<td style="text-align: right;">885806.0</td>
+<td style="text-align: right;">69.96</td>
+<td style="text-align: right;">8222.25</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">2</td>
+<td style="text-align: left;">Geometry: wkbMultiPolygon</td>
+<td style="text-align: left;">TZ</td>
+<td style="text-align: left;">Tanzania</td>
+<td style="text-align: left;">Africa</td>
+<td style="text-align: left;">Africa</td>
+<td style="text-align: left;">Eastern Africa</td>
+<td style="text-align: left;">Sovereign country</td>
+<td style="text-align: right;">9.32746e5</td>
+<td style="text-align: right;">5.22349e7</td>
+<td style="text-align: right;">64.163</td>
+<td style="text-align: right;">2402.1</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">3</td>
+<td style="text-align: left;">Geometry: wkbMultiPolygon</td>
+<td style="text-align: left;">EH</td>
+<td style="text-align: left;">Western Sahara</td>
+<td style="text-align: left;">Africa</td>
+<td style="text-align: left;">Africa</td>
+<td style="text-align: left;">Northern Africa</td>
+<td style="text-align: left;">Indeterminate</td>
+<td style="text-align: right;">96270.6</td>
+<td style="text-align: right; font-style: italic;">missing</td>
+<td style="text-align: right; font-style: italic;">missing</td>
+<td style="text-align: right; font-style: italic;">missing</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">4</td>
+<td style="text-align: left;">Geometry: wkbMultiPolygon</td>
+<td style="text-align: left;">CA</td>
+<td style="text-align: left;">Canada</td>
+<td style="text-align: left;">North America</td>
+<td style="text-align: left;">Americas</td>
+<td style="text-align: left;">Northern America</td>
+<td style="text-align: left;">Sovereign country</td>
+<td style="text-align: right;">1.0036e7</td>
+<td style="text-align: right;">3.55353e7</td>
+<td style="text-align: right;">81.953</td>
+<td style="text-align: right;">43079.1</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">5</td>
+<td style="text-align: left;">Geometry: wkbMultiPolygon</td>
+<td style="text-align: left;">US</td>
+<td style="text-align: left;">United States</td>
+<td style="text-align: left;">North America</td>
+<td style="text-align: left;">Americas</td>
+<td style="text-align: left;">Northern America</td>
+<td style="text-align: left;">Country</td>
+<td style="text-align: right;">9.51074e6</td>
+<td style="text-align: right;">3.18623e8</td>
+<td style="text-align: right;">78.8415</td>
+<td style="text-align: right;">51922.0</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">6</td>
+<td style="text-align: left;">Geometry: wkbMultiPolygon</td>
+<td style="text-align: left;">KZ</td>
+<td style="text-align: left;">Kazakhstan</td>
+<td style="text-align: left;">Asia</td>
+<td style="text-align: left;">Asia</td>
+<td style="text-align: left;">Central Asia</td>
+<td style="text-align: left;">Sovereign country</td>
+<td style="text-align: right;">2.72981e6</td>
+<td style="text-align: right;">1.72883e7</td>
+<td style="text-align: right;">71.62</td>
+<td style="text-align: right;">23587.3</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">7</td>
+<td style="text-align: left;">Geometry: wkbMultiPolygon</td>
+<td style="text-align: left;">UZ</td>
+<td style="text-align: left;">Uzbekistan</td>
+<td style="text-align: left;">Asia</td>
+<td style="text-align: left;">Asia</td>
+<td style="text-align: left;">Central Asia</td>
+<td style="text-align: left;">Sovereign country</td>
+<td style="text-align: right;">4.6141e5</td>
+<td style="text-align: right;">3.07577e7</td>
+<td style="text-align: right;">71.039</td>
+<td style="text-align: right;">5370.87</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">8</td>
+<td style="text-align: left;">Geometry: wkbMultiPolygon</td>
+<td style="text-align: left;">PG</td>
+<td style="text-align: left;">Papua New Guinea</td>
+<td style="text-align: left;">Oceania</td>
+<td style="text-align: left;">Oceania</td>
+<td style="text-align: left;">Melanesia</td>
+<td style="text-align: left;">Sovereign country</td>
+<td style="text-align: right;">4.6452e5</td>
+<td style="text-align: right;">7.75578e6</td>
+<td style="text-align: right;">65.23</td>
+<td style="text-align: right;">3709.08</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">9</td>
+<td style="text-align: left;">Geometry: wkbMultiPolygon</td>
+<td style="text-align: left;">ID</td>
+<td style="text-align: left;">Indonesia</td>
+<td style="text-align: left;">Asia</td>
+<td style="text-align: left;">Asia</td>
+<td style="text-align: left;">South-Eastern Asia</td>
+<td style="text-align: left;">Sovereign country</td>
+<td style="text-align: right;">1.81925e6</td>
+<td style="text-align: right;">2.55131e8</td>
+<td style="text-align: right;">68.856</td>
+<td style="text-align: right;">10003.1</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">10</td>
+<td style="text-align: left;">Geometry: wkbMultiPolygon</td>
+<td style="text-align: left;">AR</td>
+<td style="text-align: left;">Argentina</td>
+<td style="text-align: left;">South America</td>
+<td style="text-align: left;">Americas</td>
+<td style="text-align: left;">South America</td>
+<td style="text-align: left;">Sovereign country</td>
+<td style="text-align: right;">2.78447e6</td>
+<td style="text-align: right;">4.29815e7</td>
+<td style="text-align: right;">76.252</td>
+<td style="text-align: right;">18797.5</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">11</td>
+<td style="text-align: left;">Geometry: wkbMultiPolygon</td>
+<td style="text-align: left;">CL</td>
+<td style="text-align: left;">Chile</td>
+<td style="text-align: left;">South America</td>
+<td style="text-align: left;">Americas</td>
+<td style="text-align: left;">South America</td>
+<td style="text-align: left;">Sovereign country</td>
+<td style="text-align: right;">8.14844e5</td>
+<td style="text-align: right;">1.76138e7</td>
+<td style="text-align: right;">79.117</td>
+<td style="text-align: right;">22195.3</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">12</td>
+<td style="text-align: left;">Geometry: wkbMultiPolygon</td>
+<td style="text-align: left;">CD</td>
+<td style="text-align: left;">Democratic Republic of the Congo</td>
+<td style="text-align: left;">Africa</td>
+<td style="text-align: left;">Africa</td>
+<td style="text-align: left;">Middle Africa</td>
+<td style="text-align: left;">Sovereign country</td>
+<td style="text-align: right;">2.32349e6</td>
+<td style="text-align: right;">7.37229e7</td>
+<td style="text-align: right;">58.782</td>
+<td style="text-align: right;">785.347</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">13</td>
+<td style="text-align: left;">Geometry: wkbMultiPolygon</td>
+<td style="text-align: left;">SO</td>
+<td style="text-align: left;">Somalia</td>
+<td style="text-align: left;">Africa</td>
+<td style="text-align: left;">Africa</td>
+<td style="text-align: left;">Eastern Africa</td>
+<td style="text-align: left;">Sovereign country</td>
+<td style="text-align: right;">4.84333e5</td>
+<td style="text-align: right;">1.35131e7</td>
+<td style="text-align: right;">55.467</td>
+<td style="text-align: right; font-style: italic;">missing</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">⋮</td>
+<td style="text-align: right;">⋮</td>
+<td style="text-align: right;">⋮</td>
+<td style="text-align: right;">⋮</td>
+<td style="text-align: right;">⋮</td>
+<td style="text-align: right;">⋮</td>
+<td style="text-align: right;">⋮</td>
+<td style="text-align: right;">⋮</td>
+<td style="text-align: right;">⋮</td>
+<td style="text-align: right;">⋮</td>
+<td style="text-align: right;">⋮</td>
+<td style="text-align: right;">⋮</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">166</td>
+<td style="text-align: left;">Geometry: wkbMultiPolygon</td>
+<td style="text-align: left;">ET</td>
+<td style="text-align: left;">Ethiopia</td>
+<td style="text-align: left;">Africa</td>
+<td style="text-align: left;">Africa</td>
+<td style="text-align: left;">Eastern Africa</td>
+<td style="text-align: left;">Sovereign country</td>
+<td style="text-align: right;">1.13239e6</td>
+<td style="text-align: right;">9.73668e7</td>
+<td style="text-align: right;">64.535</td>
+<td style="text-align: right;">1424.53</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">167</td>
+<td style="text-align: left;">Geometry: wkbMultiPolygon</td>
+<td style="text-align: left;">DJ</td>
+<td style="text-align: left;">Djibouti</td>
+<td style="text-align: left;">Africa</td>
+<td style="text-align: left;">Africa</td>
+<td style="text-align: left;">Eastern Africa</td>
+<td style="text-align: left;">Sovereign country</td>
+<td style="text-align: right;">21880.3</td>
+<td style="text-align: right;">912164.0</td>
+<td style="text-align: right;">62.006</td>
+<td style="text-align: right; font-style: italic;">missing</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">168</td>
+<td style="text-align: left;">Geometry: wkbMultiPolygon</td>
+<td style="text-align: left; font-style: italic;">missing</td>
+<td style="text-align: left;">Somaliland</td>
+<td style="text-align: left;">Africa</td>
+<td style="text-align: left;">Africa</td>
+<td style="text-align: left;">Eastern Africa</td>
+<td style="text-align: left;">Indeterminate</td>
+<td style="text-align: right;">1.6735e5</td>
+<td style="text-align: right; font-style: italic;">missing</td>
+<td style="text-align: right; font-style: italic;">missing</td>
+<td style="text-align: right; font-style: italic;">missing</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">169</td>
+<td style="text-align: left;">Geometry: wkbMultiPolygon</td>
+<td style="text-align: left;">UG</td>
+<td style="text-align: left;">Uganda</td>
+<td style="text-align: left;">Africa</td>
+<td style="text-align: left;">Africa</td>
+<td style="text-align: left;">Eastern Africa</td>
+<td style="text-align: left;">Sovereign country</td>
+<td style="text-align: right;">2.45768e5</td>
+<td style="text-align: right;">3.88333e7</td>
+<td style="text-align: right;">59.224</td>
+<td style="text-align: right;">1637.28</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">170</td>
+<td style="text-align: left;">Geometry: wkbMultiPolygon</td>
+<td style="text-align: left;">RW</td>
+<td style="text-align: left;">Rwanda</td>
+<td style="text-align: left;">Africa</td>
+<td style="text-align: left;">Africa</td>
+<td style="text-align: left;">Eastern Africa</td>
+<td style="text-align: left;">Sovereign country</td>
+<td style="text-align: right;">23365.4</td>
+<td style="text-align: right;">1.13454e7</td>
+<td style="text-align: right;">66.188</td>
+<td style="text-align: right;">1629.87</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">171</td>
+<td style="text-align: left;">Geometry: wkbMultiPolygon</td>
+<td style="text-align: left;">BA</td>
+<td style="text-align: left;">Bosnia and Herzegovina</td>
+<td style="text-align: left;">Europe</td>
+<td style="text-align: left;">Europe</td>
+<td style="text-align: left;">Southern Europe</td>
+<td style="text-align: left;">Sovereign country</td>
+<td style="text-align: right;">50605.1</td>
+<td style="text-align: right;">3.566e6</td>
+<td style="text-align: right;">76.561</td>
+<td style="text-align: right;">10516.8</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">172</td>
+<td style="text-align: left;">Geometry: wkbMultiPolygon</td>
+<td style="text-align: left;">MK</td>
+<td style="text-align: left;">Macedonia</td>
+<td style="text-align: left;">Europe</td>
+<td style="text-align: left;">Europe</td>
+<td style="text-align: left;">Southern Europe</td>
+<td style="text-align: left;">Sovereign country</td>
+<td style="text-align: right;">25062.3</td>
+<td style="text-align: right;">2.0775e6</td>
+<td style="text-align: right;">75.384</td>
+<td style="text-align: right;">12298.5</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">173</td>
+<td style="text-align: left;">Geometry: wkbMultiPolygon</td>
+<td style="text-align: left;">RS</td>
+<td style="text-align: left;">Serbia</td>
+<td style="text-align: left;">Europe</td>
+<td style="text-align: left;">Europe</td>
+<td style="text-align: left;">Southern Europe</td>
+<td style="text-align: left;">Sovereign country</td>
+<td style="text-align: right;">76388.6</td>
+<td style="text-align: right;">7.13058e6</td>
+<td style="text-align: right;">75.3366</td>
+<td style="text-align: right;">13112.9</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">174</td>
+<td style="text-align: left;">Geometry: wkbMultiPolygon</td>
+<td style="text-align: left;">ME</td>
+<td style="text-align: left;">Montenegro</td>
+<td style="text-align: left;">Europe</td>
+<td style="text-align: left;">Europe</td>
+<td style="text-align: left;">Southern Europe</td>
+<td style="text-align: left;">Sovereign country</td>
+<td style="text-align: right;">13443.7</td>
+<td style="text-align: right;">621810.0</td>
+<td style="text-align: right;">76.712</td>
+<td style="text-align: right;">14796.6</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">175</td>
+<td style="text-align: left;">Geometry: wkbMultiPolygon</td>
+<td style="text-align: left;">XK</td>
+<td style="text-align: left;">Kosovo</td>
+<td style="text-align: left;">Europe</td>
+<td style="text-align: left;">Europe</td>
+<td style="text-align: left;">Southern Europe</td>
+<td style="text-align: left;">Sovereign country</td>
+<td style="text-align: right;">11230.3</td>
+<td style="text-align: right;">1.8218e6</td>
+<td style="text-align: right;">71.0976</td>
+<td style="text-align: right;">8698.29</td>
+</tr>
+<tr class="odd">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">176</td>
+<td style="text-align: left;">Geometry: wkbMultiPolygon</td>
+<td style="text-align: left;">TT</td>
+<td style="text-align: left;">Trinidad and Tobago</td>
+<td style="text-align: left;">North America</td>
+<td style="text-align: left;">Americas</td>
+<td style="text-align: left;">Caribbean</td>
+<td style="text-align: left;">Sovereign country</td>
+<td style="text-align: right;">7737.81</td>
+<td style="text-align: right;">1.35449e6</td>
+<td style="text-align: right;">70.426</td>
+<td style="text-align: right;">31181.8</td>
+</tr>
+<tr class="even">
+<td class="rowNumber" style="text-align: right; font-weight: bold;">177</td>
+<td style="text-align: left;">Geometry: wkbMultiPolygon</td>
+<td style="text-align: left;">SS</td>
+<td style="text-align: left;">South Sudan</td>
+<td style="text-align: left;">Africa</td>
+<td style="text-align: left;">Africa</td>
+<td style="text-align: left;">Eastern Africa</td>
+<td style="text-align: left;">Sovereign country</td>
+<td style="text-align: right;">6.24909e5</td>
+<td style="text-align: right;">1.1531e7</td>
+<td style="text-align: right;">55.817</td>
+<td style="text-align: right;">1935.88</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div id="6" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">CairoMakie</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">GeoMakie</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>f, a, p <span class="op">=</span> <span class="fu">poly</span>(df.geom)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="1">
+<div>
+<figure class="figure">
+<p><img src="01-spatial-data_files/figure-html/cell-4-output-1.svg" class="img-fluid figure-img"></p>
+</figure>
+</div>
 </div>
 </div>
 
@@ -731,10 +1129,13 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
+      <a href="../chapters/preface.html" class="pagination-link" aria-label="Preface">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Preface</span></span>
+      </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./chapters/preface.html" class="pagination-link" aria-label="Preface">
-        <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Preface</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../chapters/02-attribute-operations.html" class="pagination-link" aria-label="Attribute data operations">
+        <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Attribute data operations</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
@@ -746,7 +1147,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     </div>   
     <div class="nav-footer-center">
 <p>Geocomputation with Julia was written by Maarten Pronk, Rafael Schouten, Anshul Singhvi, Felix Cramer and Jakub Nowosad.</p>
-<div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/geocompx/geocompjl/edit/main/index.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></div>
+<div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/geocompx/geocompjl/edit/main/chapters/01-spatial-data.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></div>
     <div class="nav-footer-right">
       &nbsp;
     </div>

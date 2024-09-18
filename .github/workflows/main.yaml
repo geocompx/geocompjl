@@ -19,7 +19,7 @@ jobs:
         run: |
           whereis julia
           # julia -e 'using Pkg; Pkg.add("IJulia"); 
-          /usr/local/julia -e 'using IJulia' 
+          julia -e 'using IJulia' 
           # installkernel("Julia nodeps", "–depwarn=no"); using Pkg; Pkg.add("Revise")'
           quarto check jupyter
           quarto render

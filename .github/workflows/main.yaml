@@ -17,7 +17,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Render
         run: |
-          # julia -e 'using Pkg; Pkg.add("IJulia"); using IJulia; installkernel("Julia nodeps", "–depwarn=no"); using Pkg; Pkg.add("Revise")'
+          julia -e 'using Pkg; Pkg.add("IJulia"); using IJulia; installkernel("Julia nodeps", "–depwarn=no"); using Pkg; Pkg.add("Revise")'
           quarto check jupyter
           quarto render
           ls docs

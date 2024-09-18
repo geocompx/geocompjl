@@ -1,2 +1,6 @@
 [deps]
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 GeoDataFrames = "62cb38b5-d8d2-4862-a48e-6a340996859f"
+GeoMakie = "db073c08-6b98-4ee5-b6a4-5efafb3259c6"
+Proj = "c94c279d-25a6-4763-9509-64d165bea63e"
+Rasters = "a3a2b9e3-a471-40c9-b274-f788e487c689"

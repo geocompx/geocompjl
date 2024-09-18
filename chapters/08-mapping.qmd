@@ -1,0 +1,7 @@
+---
+engine: julia
+---
+
+# Making maps with Julia {#sec-map-making}
+
+## Prerequisites {.unnumbered}

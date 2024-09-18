@@ -1,0 +1,18 @@
+---
+engine: julia
+---
+
+# Geographic data in Julia {#sec-spatial-class}
+
+## Introduction
+```{julia}
+using GeoDataFrames
+df = GeoDataFrames.read("../data/world.gpkg")
+```
+
+```{julia}
+using CairoMakie
+using GeoMakie
+
+f, a, p = poly(df.geom)
+```

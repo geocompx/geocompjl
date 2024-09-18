@@ -1,0 +1,7 @@
+---
+engine: julia
+---
+
+# Geometry operations {#sec-geometric-operations}
+
+## Prerequisites {.unnumbered}

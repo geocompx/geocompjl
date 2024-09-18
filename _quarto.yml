@@ -50,5 +50,5 @@ format:
   #     text: |
   #       \printindex
 
-jupyter: julia-1.11
+jupyter: julia-1.5
 bibliography: geocompr.bib

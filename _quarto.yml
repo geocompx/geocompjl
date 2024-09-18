@@ -7,7 +7,7 @@ book:
   page-footer: "Geocomputation with Julia was written by ."
   # number-sections: true
   author: ""
-  description: | 
+  description: |
     An introductory resource for working with geographic data in Julia
   #cover-image: https://geocompx.org/static/img/book_cover_py_tmp_small.png
   site-url: https://jl.geocompx.org
@@ -22,7 +22,7 @@ book:
     - references.qmd
 
 format:
-  html: 
+  html:
     theme: flatly
     code-link: true
     template-partials: [helpers/toc.html, helpers/title-block.html]
@@ -32,23 +32,23 @@ format:
   # pdf:
   #   documentclass: krantz
   #   monofont: 'Source Code Pro'
-  #   monofontoptions: 
+  #   monofontoptions:
   #     - Scale=0.7
   #   pdf-engine: xelatex
   #   keep-tex: true
   #   number-sections: true
   #   top-level-division: chapter
   #   include-before-body: helpers/before_body.tex
-  #   include-in-header: 
+  #   include-in-header:
   #     text: |
   #       \AtBeginEnvironment{longtable}{\footnotesize}
   #       \usepackage{makeidx}
   #       \usepackage{gensymb}
   #       \usepackage{cjhebrew}
   #       \makeindex
-  #   include-after-body: 
+  #   include-after-body:
   #     text: |
   #       \printindex
 
-jupyter: julia-1.5
+jupyter: julia
 bibliography: geocompr.bib

@@ -4,6 +4,7 @@ description-meta: |
   It's a short and practical open source book in which you'll
   develop and use geocomputation to solve practical
   problems and lay the foundations for advanced geospatial applications.
+engine: julia
 ---
 
 ::: {.content-visible when-format="html"}
@@ -30,6 +31,6 @@ For details on reproducing the book, see the README in the project's GitHub repo
 :::
 
 ```{julia}
-#| echo: false
-"Hello geocompx World"
+# |echo: false
+print("Hello geocompx World")
 ```

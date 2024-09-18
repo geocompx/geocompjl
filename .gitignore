@@ -1,0 +1,11 @@
+.bash_history
+_book
+_main.*
+*.html
+*.pdf
+*.utf8.md
+!ga.html
+libs/
+
+/.quarto/
+docs

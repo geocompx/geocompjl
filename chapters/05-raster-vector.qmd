@@ -268,13 +268,21 @@ zion_transect_pnt = DataFrame(geometry = zion_transect_pnt)
 
 result = Rasters.extract(src_srtm, zion_transect_pnt; geometry = false) .|> first
 zion_transect_pnt[!, "elev"] = result
-# Now, we can also compute distances along the line manually:
-zion_transect_pnt[!, "dist"] = [0.0; map(GO.distance, GI.getpoint(zion_transect_line)[1:end-1], GI.getpoint(zion_transect_line)[2:end])] |> cumsum
+```
+
+We also want to visualize an elevation profile along this line, so we compute the distances along the line manually. Using `GO.distance`, we can get the distance between successive points along the line.  Then, we add `0.0` to the beginning of the array of distances, and sum along that array to get the cumulative distance along the line.
+
+```{julia}
+# Compute distances between successive points along the line
+distances_between_points = GO.distance.(zion_transect_pnt.geometry[1:end-1], zion_transect_pnt.geometry[2:end])
+# Compute cumulative distances along the line
+cumulative_distances = cumsum([0.0; distances_between_points])
+zion_transect_pnt[!, "dist"] = cumulative_distances
 zion_transect_pnt
 ```
 
 
-The information in `zion_transect_pnt`, namely the `'dist'` and `'elev'` attributes, can now be used to draw an elevation profile, as illustrated in @fig-zion-transect.
+The information in `zion_transect_pnt`, namely the `"dist"` and `"elev"` attributes, can now be used to draw an elevation profile, as illustrated in @fig-zion-transect.
 
 
 ```{julia}

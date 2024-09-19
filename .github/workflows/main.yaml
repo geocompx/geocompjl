@@ -23,7 +23,8 @@ jobs:
           Pkg.instantiate()
           Pkg.activate(".")
           Pkg.add([
-            PackageSpec(url = "https://github.com/asinghvi17/Rasters.jl", rev = "as/fixrasterize"),
+            PackageSpec(url = "https://github.com/asinghvi17/Rasters.jl", rev = "as/makie_and_cf"),
+            PackageSpec(url = "https://github.com/rafaqz/DimensionalData.jl", rev = "main"),
           ])
         shell: julia {0}
       - uses: julia-actions/julia-buildpkg@v1

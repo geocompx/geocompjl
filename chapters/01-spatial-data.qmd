@@ -1,11 +1,13 @@
 ---
 engine: julia
+project:
+  execute-dir: project
 ---
 
 ```{julia}
 #| include: false
 using Pkg
-Pkg.activate("..")
+Pkg.activate(".")
 Pkg.instantiate()
 ```
 
@@ -14,7 +16,7 @@ Pkg.instantiate()
 ## Introduction
 ```{julia}
 using GeoDataFrames
-df = GeoDataFrames.read("../data/world.gpkg")
+df = GeoDataFrames.read("data/world.gpkg")
 ```
 
 ```{julia}
@@ -122,7 +124,7 @@ For now, for completeness, and also to use these rasters in subsequent chapters 
 In the case of `elev`, we do it as follows with the `Rasters.write` functions and methods of the **Rasters.jl** package.
 
 ```{julia}
-write("output/elev1.tif", Rasters.setcrs(elev_raster, GFT.EPSG(4326)); force = true)
+write("output/elev.tif", Rasters.setcrs(elev_raster, GFT.EPSG(4326)); force = true)
 ```
 
 Note that the CRS we (arbitrarily) set for the `elev` raster is WGS84, defined using `crs=4326` according to the EPSG code.

@@ -83,7 +83,8 @@ out_image_mask = Rasters.mask(src_srtm; with = zion, missingval = 9999)
 We can write this masked raster to file with `Rasters.write`, as usual:
 
 ```{julia}
-Rasters.write("output/srtm_masked.tif", out_image_mask)
+Rasters.write("output/srtm_masked.tif", out_image_mask; force = true
+)
 ```
 
 
@@ -106,7 +107,7 @@ out_image_mask_crop = Rasters.crop(out_image_mask; to = zion, touches = true)
 and we write it to file as usual:
 
 ```{julia}
-Rasters.write("output/srtm_masked_cropped.tif", out_image_mask_crop)
+Rasters.write("output/srtm_masked_cropped.tif", out_image_mask_crop; force = true)
 ```
 
 @fig-raster-crop shows the original raster, and the three masking and/or cropping results.

@@ -4,14 +4,12 @@ project:
   execute-dir: project
 ---
 
-```{julia}
-#| include: false
-using Pkg
-Pkg.activate(".")
-Pkg.instantiate()
-```
-
 # Geographic data in Julia {#sec-spatial-class}
+
+```{julia}
+using Pkg
+Pkg.status()
+```
 
 ## Introduction
 ```{julia}

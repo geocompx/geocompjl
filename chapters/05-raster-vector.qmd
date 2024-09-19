@@ -630,4 +630,72 @@ One [suggestion](https://gis.stackexchange.com/questions/455980/vectorizing-all-
 
 ### Raster to points {#sec-raster-to-points}
 
-To transform a raster to points, we can simply use the `Rasters.DimPoints` constructor that we used before in @sec-rasterizing-lines-and-polygons.
+To transform a raster to points, Rasters.jl provides the `Rasters.DimTable` constructor, which converts a raster into a lazy, table-like form.  This can be converted directly to a `DataFrame`, or operated on independently.
+
+```{julia}
+dt = DimTable(Raster("output/elev.tif"))
+```
+
+Notice that this has three columns, `:X`, `:Y`, and `:layer1`, corresponding to the pixel centroids and elevation values.  But what if we want to treat the X and Y dimensionas as point geometries?
+
+`DimTable` has a `mergedims` keyword argument for this, which allows us to merge the X and Y dimensions into a single dimension.
+
+```{julia}
+dt = DimTable(Raster("output/elev.tif"), mergedims = (X, Y))
+```
+
+This has created a `DimTable` with a single dimension, `:XY`, which contains the pixel centroids as point-like objects.  We can convert this to a `DataFrame`, set some metadata to indicate that geometry is in `:XY`, and plot the result.
+
+```{julia}
+df = DataFrame(dt)
+DataFrames.metadata!(df, "GEOINTERFACE:geometrycolumns", (:XY,); style = :note)
+df
+```
+
+```{julia}
+scatter(df.XY; color = df.layer1)
+```
+
+We can even save this to a file trivially easily:
+
+```{julia}
+GeoDataFrames.write("output/elev.gpkg", df)
+GeoDataFrames.read("output/elev.gpkg")
+```
+
+
+@fig-raster-to-points shows the input raster and the resulting point layer.
+
+```{julia}
+#| label: fig-raster-to-points
+#| fig-cap: Raster and point representation of `elev.tif`
+#| layout-ncol: 2
+#| fig-subcap: 
+#| - Input raster
+#| - Points
+# Input raster
+fig, ax, plt = plot(src_elev)
+scatter!(ax, df.XY; color = df.layer1)
+fig
+# Points
+fig, ax, plt = plot(src_elev; alpha = 0.1)
+scatter!(ax, df.XY; color = df.layer1, strokecolor = :black, strokewidth = 1)
+fig
+```
+
+TODO: nodata pixels
+
+### Raster to contours {#sec-raster-to-contours}
+
+Another common type of spatial vectorization is the creation of contour lines, representing lines of continuous height or temperatures (*isotherms*), for example.
+We will use a real-world digital elevation model (DEM) because the artificial raster `elev.tif` produces parallel lines (task for the reader: verify this and explain why this happens).
+*Plotting* contour lines is straightforward, using the `contour` or `contourf` functions in **Makie**.
+
+```{julia}
+f, ax, plt = contour(src_dem; levels = LinRange(0, 1200, 50), color = :black)
+```
+
+TODO: gdal_contour (via ArchGDAL??)
+
+It would be good to show how to use the provided GDAL executables though...
+

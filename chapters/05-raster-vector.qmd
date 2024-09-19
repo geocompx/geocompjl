@@ -597,7 +597,37 @@ Let us demonstrate all three in the given order.
 
 ### Raster to polygons {#sec-raster-to-polygons}
 
-The `rasterio.features.shapes` gives access to raster pixels as polygon geometries, along with the associated raster values.
-The returned object is a generator (see note in @sec-spatial-subsetting-raster), yielding `geometry,value` pairs.
+Rasters.jl does not currently have a function to convert a raster to a feature collection with one polygon per pixel or cell.  This is a similar situation in Python with `rasterio`.
 
-For example, the following expression returns a generator named `shapes`, referring to the pixel polygons.
+GeometryOps.jl offers a `polygonize` function that returns a feature collection of polygons, where each feature has a `value` property that encodes the value of all pixels within that polygon.  Each polygon contains pixels with the same value.
+
+```{julia}
+GO.polygonize(src_grain)
+```
+
+To load this as a `DataFrame`, we can take a shortcut and read it as GeoJSON (which is convertable to a DataFrame).  
+Support for direct conversion from `GI.FeatureCollection` to a `DataFrame` is in progress.  TODO: add a link and track progress.
+
+```{julia}
+using GeoJSON
+df = GeoJSON.read(GeoJSON.write(fc)) |> DataFrame |> dropmissing!
+```
+
+The polygon layer `df` is shown in @fig-raster-to-polygons.
+
+```{julia}
+#| label: fig-raster-to-polygons
+#| fig-cap: '`grain.tif` converted to a polygon layer'
+f, a, p = poly(df.geometry; color = df.value, strokecolor = :black, strokewidth = 0.75)
+Colorbar(f[1, 2], p)
+f
+```
+
+
+As highlighted using `edgecolor='black'`, neighboring pixels sharing the same raster value are dissolved into larger polygons.
+
+One [suggestion](https://gis.stackexchange.com/questions/455980/vectorizing-all-pixels-as-separate-polygons-using-rasterio#answer-456251) is to add unique values between `0` and `0.9999` to all pixels, convert to polygons, and then get back to the original values using `floor`.
+
+### Raster to points {#sec-raster-to-points}
+
+To transform a raster to points, we can simply use the `Rasters.DimPoints` constructor that we used before in @sec-rasterizing-lines-and-polygons.

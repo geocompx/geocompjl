@@ -18,7 +18,7 @@ jobs:
       - name: Set up custom Julia dependencies
         run: |
           using Pkg
-          Pkg.activate("@quarto")
+          Pkg.activate("quarto"; shared = true)
           Pkg.add(url = "https://github.com/asinghvi17/QuartoNotebookRunner.jl", rev = "as/execute-dir")
           Pkg.instantiate()
           Pkg.activate(".")

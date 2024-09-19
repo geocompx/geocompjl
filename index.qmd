@@ -17,7 +17,7 @@ Inspired by the Free and Open Source Software for Geospatial ([FOSS4G](https://f
 Find the code underlying the *geocompjl* project on [GitHub](https://github.com/geocompx/geocompjl), ensuring that the content is reproducible, transparent, and accessible.
 Making the book open source allows you or anyone else, to interact with the project by opening [issues](https://github.com/geocompx/geocompjl/issues), making typo fixes and more, for the benefit of everyone.
 
-This book is part of the *geocompx* series, following the popular R and Python editions.
+This book is part of [the *geocompx* series](https://geocompx.org/), following the popular R and Python editions.
 
 The book's website is built by GitHub Actions, which runs the code every time we make a change, ensuring code correctness and reproducibility.
 The current build status as follows:

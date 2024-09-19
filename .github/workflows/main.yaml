@@ -3,6 +3,7 @@ on:
   push:
     branches:
       [main]
+  pull_request:
 name: Quarto Publish
 jobs:
   bookdown:

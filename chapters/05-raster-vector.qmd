@@ -602,7 +602,7 @@ Rasters.jl does not currently have a function to convert a raster to a feature c
 GeometryOps.jl offers a `polygonize` function that returns a feature collection of polygons, where each feature has a `value` property that encodes the value of all pixels within that polygon.  Each polygon contains pixels with the same value.
 
 ```{julia}
-GO.polygonize(src_grain)
+fc = GO.polygonize(src_grain)
 ```
 
 To load this as a `DataFrame`, we can take a shortcut and read it as GeoJSON (which is convertable to a DataFrame).  
@@ -698,4 +698,80 @@ f, ax, plt = contour(src_dem; levels = LinRange(0, 1200, 50), color = :black)
 TODO: gdal_contour (via ArchGDAL??)
 
 It would be good to show how to use the provided GDAL executables though...
+
+
+## Distance to nearest geometry {#sec-distance-to-nearest-geometry}
+
+Calculating a raster of distances to the nearest geometry is an example of a "global" raster operation (@sec-global-operations-and-distances).
+To demonstrate it, suppose that we need to calculate a raster representing the distance to the nearest coast in New Zealand.
+This example also wraps many of the concepts introduced in this chapter and in previous chapters, such as raster aggregation (@sec-raster-agg-disagg), raster conversion to points (@sec-raster-to-points), and rasterizing points (@sec-rasterizing-points).
+
+For the coastline, we will dissolve the New Zealand administrative division polygon layer and "extract" the boundary as a `'MultiLineString'` geometry.
+
+```{julia}
+using LibGEOS
+coastline_linestrings = GI.getexterior.(GI.getgeom(LibGEOS.unaryUnion(GI.GeometryCollection(nz.geom)))) .|> x -> GI.LineString(collect(GI.getpoint(x)))
+coastline = GI.MultiLineString(coastline_linestrings)
+coastline = GO.reproject(coastline; target_crs = GI.crs(src_nz_elev), source_crs = GI.crs(nz))
+```
+
+For a "template" raster, we will aggregate the New Zealand DEM, in the `nz_elev.tif` file, to 5 times coarser resolution.
+The code section below follows the aggeregation example in @sec-raster-agg-disagg.
+
+```{julia}
+factor = 2/10
+r = Rasters.resample(src_nz_elev; size = round.(Int, size(src_nz_elev) .* factor), method = :average)
+```
+
+The resulting array `r`/`new_transform` and the lines layer `coastline` are plotted in @fig-raster-distances1.
+Note that the raster values are average elevations based on $5 \times 5$ pixels, but this is irrelevant for the subsequent calculation; the raster is going to be used as a template, and all of its values will be replaced with distances to coastline (@fig-raster-distances2).
+
+
+```{julia}
+#| label: fig-raster-distances1
+#| fig-cap: Template to calculate distance to nearest geometry (coastlines, in red)
+fig, ax, plt = plot(r)
+lines!(ax, coastline; color = :red)
+fig
+```
+
+To calculate the actual distances, we must convert each pixel to a vector (point) geometry.
+For this purpose, we use the technique demonstrated in @sec-raster-to-points.
+
+```{julia}
+dp = DimPoints(r)
+nonmissing_points = dp[ismissing.(r)]
+```
+
+The result is a vector of 2-tuples, which are recognized as GeoInterface point geometries.
+
+We can compute the Cartesian distance from each point to the nearest line in the `coastline` multilinestring using the `distance` method from **GeometryOps**.
+
+```{julia}
+distances = GO.distance.((coastline,), nonmissing_points)
+```
+
+Finally, we rasterize (see @sec-rasterizing-points) the distances into our raster template.     
+
+```{julia}
+image = Rasters.rasterize(
+    last,
+    nonmissing_points;
+    to = r,
+    fill = distances,
+)
+```
+
+The final result, a raster of distances to the nearest coastline, is shown in @fig-raster-distances2.
+
+```{julia}
+#| label: fig-raster-distances2
+#| fig-cap: Distance to nearest coastline in New Zealand
+fig, ax, plt = plot(image)
+lines!(ax, coastline; color = :red)
+Colorbar(fig[1, 2], plt; label = "Distance to coastline (m)")
+fig
+```
+
+<!-- ## Exercises -->
 

@@ -19,6 +19,13 @@ import GeoFormatTypes as GFT # for CRS types
 using GeoMakie, CairoMakie # plotting
 ```
 
+```{julia}
+Makie.set_theme!(
+    Heatmap = (; rasterize = 2),
+    Surface = (; rasterize = 2),
+)
+```
+
 It also relies on the following data files:
 
 ```{julia}

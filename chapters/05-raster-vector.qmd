@@ -358,3 +358,229 @@ fig # TODO: make GeoMakie better on small extents
 <!-- md: admittedly I've never used this functionality in either R or Python... If you have a sample data file I'll be happy to experiment with it. -->
 <!-- as: We haven't implemented this in Rasters.jl yet but it would not be hard potentially... -->
 
+
+## Rasterization {#sec-rasterization}
+
+Rasterization is the conversion of vector objects into their representation in raster objects.
+Usually, the output raster is used for quantitative analysis (e.g., analysis of terrain) or modeling.
+As we saw in @sec-spatial-class, the raster data model has some characteristics that make it conducive to certain methods.
+Furthermore, the process of rasterization can help simplify datasets because the resulting values all have the same spatial resolution: rasterization can be seen as a special type of geographic data aggregation.
+
+Rasters.jl provides the `Rasters.rasterize` function for rasterizing vector data.  To make this happen, we need to have some definition for a "template" grid, i.e., the "template" raster defining the extent, resolution and CRS of the output.  We can also pass a pre-existing raster, in which case Rasters uses the existing grid definition.
+
+
+As for the vector geometries and their associated values, the `Rasters.rasterize` function can take input in multiple ways:
+-    `; data::FeatureCollection, fill::Symbol` means that the values of the column passed to `fill` will be used to fill the raster.
+-    `; data::Vector{Geometry}, fill::Vector` means that the values passed to `fill` will be associated with each geometry in `data` and used to fill the raster.
+-    `; data::Any, fill::Function` calls `fill` with the current value
+
+We will use the `; data::FeatureCollection, fill::Symbol` method to rasterize the `zion` polygon we have been using in this chapter.
+
+
+Furthermore, we define how to deal with multiple values burned into the same pixel, in the first argument called `reducer`.  By default, this is `last`, meaning that the last polygon to be rasterized takes precedence.  However, we can pass any function that takes in an iterable and returns a single value, like `mean`, `minimum`, `maximum`, `std`, `median`, `mode`, `sum`, `prod`, etc.  Many of these may not make sense to use but they are useful to know of.
+
+
+Finally, we can set the `fill` value, which is the value that "unaffected" pixels get, with `fill=0` being the default.
+
+How the `Rasters.rasterize` function works with all of these various parameters will be made clear in the next examples.
+
+The geographic resolution of the "template" raster has a major impact on the results: if it is too low (cell size is too large), the result may miss the full geographic variability of the vector data; if it is too high, computational times may be excessive.
+There are no simple rules to follow when deciding an appropriate geographic resolution, which is heavily dependent on the intended use of the results.
+Often the target resolution is imposed on the user, for example when the output of rasterization needs to be aligned to an existing raster.
+
+Depending on the input data, rasterization typically takes one of two forms which we demonstrate next:
+
+-   in *point* rasterization (@sec-rasterizing-points), we typically choose how to treat multiple points: either to summarize presence/absence, point count, or summed attribute values (@fig-rasterize-points)
+-   in *line* and *polygon* rasterization (@sec-rasterizing-lines-and-polygons), there are typically no such "overlaps" and we simply "burn" attribute values, or fixed values, into pixels coinciding with the given geometries (@fig-rasterize-lines-polygons)
+
+
+### Rasterizing points {#sec-rasterizing-points}
+
+To demonstrate point rasterization, we will prepare a "template" raster that has the same extent and CRS as the input vector data `cycle_hire_osm_projected` (a dataset on cycle hire points in London, illustrated in @fig-rasterize-points (a)) and a spatial resolution of 1000 $m$.
+To do that, we first take our point layer and transform it to a projected CRS.
+
+```{julia}
+cycle_hire_osm_projected = GO.reproject(cycle_hire_osm; target_crs = GFT.EPSG(27700))
+```
+
+We can then use the `Rasters.rasterize` function to rasterize the points.
+
+::: {.callout-danger}
+This isn't a great way to get an extent, but needs must.  Currently we get the extent of `cycle_hire_osm_projected` by `GI.extent(GI.LineString(cycle_hire_osm_projected.geom))`. 
+
+Track https://github.com/geocompx/geocompjl/issues/5 to see
+if there's a better way to get an extent from a vector of geometries.
+:::
+
+
+As mentioned above, point rasterization can be a very flexible operation: the results depend not only on the nature of the template raster, but also on the the pixel "activation" method, namely the way we deal with multiple points matching the same pixel.
+
+To illustrate this flexibility, we will try three different approaches to point rasterization (@fig-rasterize-points (b)-(d)).
+First, we create a raster representing the presence or absence of cycle hire points (known as presence/absence rasters).
+In this case, we transfer the value of `1` to all pixels where at least one point falls in.
+In the **Rasters.jl** framework, we use the `Rasters.rasterize` function, as described above.   In this first example, we want to write the value `1` where the points are present, and `0` otherwise.
+ 
+```{julia}
+ch_raster1 = Rasters.rasterize(
+    last,                     # reducer
+    cycle_hire_osm_projected; # data
+    fill = 1, 
+    size = (1000, 1000) # specify size in "pixels"
+)
+```
+
+In our second variant of point rasterization, we count the number of bike hire stations. 
+To do that, we use the fixed value of `1` (same as in the last example), but this time combined with the `reducer=sum` argument. 
+That way, multiple values burned into the same pixel are *summed*, rather than replaced keeping last (which is the default).
+The new output, `ch_raster2`, shows the number of cycle hire points in each grid cell.
+
+```{julia}
+ch_raster2 = Rasters.rasterize(
+    sum,                     # reducer
+    cycle_hire_osm_projected; # data
+    fill = 1, 
+    size = (1000, 1000) # specify size in "pixels"
+)
+```
+
+
+The cycle hire locations have different numbers of bicycles described by the capacity variable, raising the question, what is the capacity in each grid cell?
+To calculate that, in our third point rasterization variant we sum the field (`'capacity'`) rather than the fixed values of `1`.
+
+This is extremely simple to run, but we will show how to do this two ways: first, by passing the column name in the feature collection to `fill`.
+
+```{julia}
+ch_raster3 = Rasters.rasterize(
+    sum,                     # reducer
+    cycle_hire_osm_projected; # data
+    fill = :capacity, 
+    size = (1000, 1000) # specify size in "pixels"
+)
+```
+
+Second, by passing the vectors of geometries and values separately.
+```{julia}
+ch_raster3 = Rasters.rasterize(
+    sum,                     # reducer
+    cycle_hire_osm_projected.geom; # data
+    fill = cycle_hire_osm_projected.capacity, 
+    crs = GI.crs(cycle_hire_osm_projected),
+    size = (1000, 1000) # specify size in "pixels"
+)
+```
+The input point layer `cycle_hire_osm_projected` and the three variants of rasterizing it `ch_raster1`, `ch_raster2`, and `ch_raster3` are shown in @fig-rasterize-points.
+
+```{julia}
+#| label: fig-rasterize-points
+#| fig-cap: Original data and three variants of point rasterization
+#| layout-ncol: 2
+#| fig-subcap: 
+#| - Input points
+#| - Presence/Absence
+#| - Point counts
+#| - Summed attribute values
+# Input points
+scatter(cycle_hire_osm_projected.geom; color = cycle_hire_osm_projected.capacity)
+# Presence/Absence
+plot(ch_raster1)
+# Point counts
+plot(ch_raster2)
+# Summed attribute values
+plot(ch_raster3)
+```
+
+### Rasterizing lines and polygons {#sec-rasterizing-lines-and-polygons}
+
+Another dataset based on California's polygons and borders (created below) illustrates rasterization of lines.
+There are three preliminary steps.
+First, we subset the California polygon.
+
+```{julia}
+california = us_states[ us_states[!, "NAME"] .== "California", :]
+```
+
+Second, we obtain the borders of the polygon as a `'MultiLineString'
+
+```{julia}
+california_geom = only(california.geom)
+california_borders = GI.MultiLineString(GI.LineString.(GI.getexterior.(GI.getgeom(california_geom))); crs = GI.crs(california_geom)) # TODO: make this a lot better....
+```
+
+Finally, we rasterize `california_borders` on a grid with resolution of 0.5 degrees per pixel.
+
+```{julia}
+california_raster1 = Rasters.rasterize(
+    last,
+    california_borders;
+    fill = 1,
+    res = 0.5, # degrees - this is in units of GI.crs(california_borders)
+    boundary = :touches,
+)
+```
+
+Compare it to a polygon rasterization, with `all_touched=False` (the default), which selects only raster cells whose centroids are inside the selector polygon, as illustrated in @fig-rasterize-lines-polygons (right).
+
+```{julia}
+california_raster2 = Rasters.rasterize(
+    last, 
+    california;
+    geometrycolumn = :geom,
+    fill = 1,
+    res = 0.5,
+    boundary = :center,
+)
+```
+
+
+To illustrate which raster pixels are actually selected as part of rasterization, we also show them as points.
+This also requires the following code section to calculate the points, which we explain in @sec-spatial-vectorization.
+
+
+```{julia}
+dp = DimPoints(california_raster1)
+
+```
+
+```{julia}
+[(x, y) for x in dims(california_raster1, X), y in dims(california_raster1, Y)]
+```
+
+@fig-rasterize-lines-polygons shows the input vector layer, the rasterization results, and the points `pnt`.
+
+```{python}
+#| label: fig-rasterize-lines-polygons
+#| fig-cap: Examples of line and polygon rasterization 
+#| layout-ncol: 2
+#| fig-subcap: 
+#| - Line rasterization w/ `all_touched=True`
+#| - Polygon rasterization w/ `all_touched=False`
+# Line rasterization
+fig, ax = plt.subplots()
+rasterio.plot.show(california_raster1, transform=transform, ax=ax, cmap='Set3')
+gpd.GeoSeries(california_borders).plot(ax=ax, edgecolor='darkgrey', linewidth=1)
+pnt.plot(ax=ax, color='black', markersize=1);
+# Polygon rasterization
+fig, ax = plt.subplots()
+rasterio.plot.show(california_raster2, transform=transform, ax=ax, cmap='Set3')
+california.plot(ax=ax, color='none', edgecolor='darkgrey', linewidth=1)
+pnt.plot(ax=ax, color='black', markersize=1);
+```
+
+## Spatial vectorization {#sec-spatial-vectorization}
+
+Spatial vectorization is the counterpart of rasterization (@sec-rasterization).
+It involves converting spatially continuous raster data into spatially discrete vector data such as points, lines or polygons.
+There are three standard methods to convert a raster to a vector layer, which we cover next:
+
+-   Raster to polygons (@sec-raster-to-polygons)---converting raster cells to rectangular polygons, representing pixel areas
+-   Raster to points (@sec-raster-to-points)---converting raster cells to points, representing pixel centroids
+-   Raster to contours (@sec-raster-to-contours)
+
+Let us demonstrate all three in the given order.
+
+### Raster to polygons {#sec-raster-to-polygons}
+
+The `rasterio.features.shapes` gives access to raster pixels as polygon geometries, along with the associated raster values.
+The returned object is a generator (see note in @sec-spatial-subsetting-raster), yielding `geometry,value` pairs.
+
+For example, the following expression returns a generator named `shapes`, referring to the pixel polygons.

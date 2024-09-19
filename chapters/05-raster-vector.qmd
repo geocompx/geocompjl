@@ -195,7 +195,7 @@ result1[1:5]
 To get a `GeoDataFrame` with the original points geometries (and other attributes, if any), as well as the extracted raster values, we can assign the extraction result into a new column.
 
 ```{julia}
-zion_points["elev1"] = result1
+zion_points[!, "elev1"] = result1
 zion_points
 ```
 
@@ -754,7 +754,7 @@ distances = GO.distance.((coastline,), nonmissing_points)
 Finally, we rasterize (see @sec-rasterizing-points) the distances into our raster template.     
 
 ```{julia}
-image = Rasters.rasterize(
+img = Rasters.rasterize(
     last,
     nonmissing_points;
     to = r,
@@ -767,7 +767,7 @@ The final result, a raster of distances to the nearest coastline, is shown in @f
 ```{julia}
 #| label: fig-raster-distances2
 #| fig-cap: Distance to nearest coastline in New Zealand
-fig, ax, plt = plot(image)
+fig, ax, plt = plot(img)
 lines!(ax, coastline; color = :red)
 Colorbar(fig[1, 2], plt; label = "Distance to coastline (m)")
 fig

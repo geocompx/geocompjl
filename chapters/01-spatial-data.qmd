@@ -5,10 +5,8 @@ engine: julia
 # Geographic data in Julia {#sec-spatial-class}
 
 ```{julia}
-#| include: false
 using Pkg
-Pkg.activate("..")
-Pkg.instantiate()
+Pkg.status()
 ```
 
 ## Introduction

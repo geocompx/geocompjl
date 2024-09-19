@@ -760,7 +760,7 @@ For this purpose, we use the technique demonstrated in @sec-raster-to-points, bu
 
 ```{julia}
 dp = DimPoints(r)
-nonmissing_points = dp[ismissing.(r)]
+nonmissing_points = dp[r .=== missingval(r)]
 ```
 
 The result is a vector of 2-tuples, which are recognized as GeoInterface point geometries.

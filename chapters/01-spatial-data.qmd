@@ -34,6 +34,7 @@ Nevertheless, the examples will be helpful to become more familiar with the **Ra
 
 ```{julia}
 using Rasters
+import GeoFormatTypes as GFT
 ```
 
 Conceptually, a raster is an array combined with georeferencing information, whereas the latter comprises:

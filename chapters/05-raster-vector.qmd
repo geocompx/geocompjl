@@ -620,8 +620,9 @@ To load this as a `DataFrame`, we can take a shortcut and read it as GeoJSON (wh
 Support for direct conversion from `GI.FeatureCollection` to a `DataFrame` is in progress.  TODO: add a link and track progress.
 
 ```{julia}
-using GeoJSON
-df = GeoJSON.read(GeoJSON.write(fc)) |> DataFrame |> dropmissing!
+df = DataFrame([GI.properties(f) for f in GI.getfeature(fc)])
+df.geometry = [GI.geometry(f) for f in GI.getfeature(fc)]
+df
 ```
 
 The polygon layer `df` is shown in @fig-raster-to-polygons.

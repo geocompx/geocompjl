@@ -22,8 +22,8 @@ It also relies on the following data files:
 ```{julia}
 src_srtm = Raster("data/srtm.tif")
 src_nlcd = Raster("data/nlcd.tif")
-# src_grain = Raster("output/grain.tif")
-# src_elev = Raster("output/elev.tif")
+src_grain = Raster("output/grain.tif")
+src_elev = Raster("output/elev.tif")
 src_dem = Raster("data/dem.tif")
 zion = GeoDataFrames.read("data/zion.gpkg")
 zion_points = GeoDataFrames.read("data/zion_points.gpkg")
@@ -480,7 +480,10 @@ The input point layer `cycle_hire_osm_projected` and the three variants of raste
 #| - Point counts
 #| - Summed attribute values
 # Input points
-scatter(cycle_hire_osm_projected.geom; color = cycle_hire_osm_projected.capacity)
+nonmissing_df = dropmissing(cycle_hire_osm_projected, [:capacity, :geom])
+f, a, p = scatter(nonmissing_df.geom; color = nonmissing_df.capacity)
+Colorbar(f[1, 2], p)
+f
 # Presence/Absence
 plot(ch_raster1)
 # Point counts
@@ -535,35 +538,49 @@ california_raster2 = Rasters.rasterize(
 To illustrate which raster pixels are actually selected as part of rasterization, we also show them as points.
 This also requires the following code section to calculate the points, which we explain in @sec-spatial-vectorization.
 
+::: {.panel-tabset}
 
+## DimPoints
 ```{julia}
 dp = DimPoints(california_raster1)
-
 ```
+
+## Constructing from lookups
+
+DimensionalData.jl (which underpins Rasters.jl) provides easy ways to get "lookups", i.e, axis index values, from a raster.  
+
+Note that these lookups may encode intervals, points, or anything in between - so you should use shiftlocus or set to get the actual point values!  DimPoints does this for you.  
+
+But if you want to see how this can be done automatically, here you go.
 
 ```{julia}
 [(x, y) for x in dims(california_raster1, X), y in dims(california_raster1, Y)]
 ```
 
+You can see that this encodes the same values as `dp` in the other tab.
+
+TODO: firm up the description here and add links.
+:::
+
 @fig-rasterize-lines-polygons shows the input vector layer, the rasterization results, and the points `pnt`.
 
-```{python}
+```{julia}
 #| label: fig-rasterize-lines-polygons
 #| fig-cap: Examples of line and polygon rasterization 
 #| layout-ncol: 2
 #| fig-subcap: 
-#| - Line rasterization w/ `all_touched=True`
-#| - Polygon rasterization w/ `all_touched=False`
+#| - Line rasterization w/ `boundary=:touches`
+#| - Polygon rasterization w/ `boundary=:center`
 # Line rasterization
-fig, ax = plt.subplots()
-rasterio.plot.show(california_raster1, transform=transform, ax=ax, cmap='Set3')
-gpd.GeoSeries(california_borders).plot(ax=ax, edgecolor='darkgrey', linewidth=1)
-pnt.plot(ax=ax, color='black', markersize=1);
+fig, ax, plt = plot(california_raster1; colormap = cgrad(:Set3; categorical = true))
+lines!(ax, california_borders; color = :darkgrey, linewidth = 1)
+scatter!(ax, vec(dp); markersize = 3, color = :black)
+fig
 # Polygon rasterization
-fig, ax = plt.subplots()
-rasterio.plot.show(california_raster2, transform=transform, ax=ax, cmap='Set3')
-california.plot(ax=ax, color='none', edgecolor='darkgrey', linewidth=1)
-pnt.plot(ax=ax, color='black', markersize=1);
+fig, ax, plt = plot(california_raster2; colormap = cgrad(:Set3; categorical = true))
+lines!(ax, california_borders; color = :darkgrey, linewidth = 1)
+scatter!(ax, vec(dp); markersize = 3, color = :black)
+fig
 ```
 
 ## Spatial vectorization {#sec-spatial-vectorization}

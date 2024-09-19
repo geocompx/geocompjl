@@ -5,3 +5,355 @@ engine: julia
 # Raster-vector interactions {#sec-raster-vector}
 
 ## Prerequisites {.unnumbered}
+
+This chapter requires importing the following packages:
+
+```{julia}
+using GeoDataFrames, DataFrames
+using Rasters, ArchGDAL # Raster I/O and operations
+using Proj # activate reprojection capabilities
+import GeoInterface as GI, GeometryOps as GO, LibGEOS as LG # Vector operations
+import GeoFormatTypes as GFT # for CRS types
+using GeoMakie, CairoMakie # plotting
+```
+
+It also relies on the following data files:
+
+```{julia}
+src_srtm = Raster("data/srtm.tif")
+src_nlcd = Raster("data/nlcd.tif")
+# src_grain = Raster("output/grain.tif")
+# src_elev = Raster("output/elev.tif")
+src_dem = Raster("data/dem.tif")
+zion = GeoDataFrames.read("data/zion.gpkg")
+zion_points = GeoDataFrames.read("data/zion_points.gpkg")
+cycle_hire_osm = GeoDataFrames.read("data/cycle_hire_osm.gpkg")
+us_states = GeoDataFrames.read("data/us_states.gpkg")
+nz = GeoDataFrames.read("data/nz.gpkg")
+src_nz_elev = Raster("data/nz_elev.tif")
+```
+
+## Introduction
+
+This chapter focuses on interactions between raster and vector geographic data models, both introduced in @sec-spatial-class.
+It includes four main techniques:
+
+-   Raster cropping and masking using vector objects (@sec-raster-cropping)
+-   Extracting raster values using different types of vector data (Section @sec-raster-extraction)
+-   Raster-vector conversion (@sec-rasterization and @sec-spatial-vectorization)
+
+These concepts are demonstrated using data from in previous chapters, to understand their potential real-world applications.
+
+## Raster masking and cropping {#sec-raster-cropping}
+
+Many geographic data projects involve integrating data from many different sources, such as remote sensing images (rasters) and administrative boundaries (vectors).
+Often the extent of input raster datasets is larger than the area of interest.
+In this case, raster *masking*, *cropping*, or both, are useful for unifying the spatial extent of input data (@fig-raster-crop (b) and (c), and the following two examples, illustrate the difference between masking and cropping).
+Both operations reduce object memory use and associated computational resources for subsequent analysis steps, and may be a necessary preprocessing step before creating attractive maps involving raster data.
+
+We will use two layers to illustrate raster cropping:
+
+-   The `srtm.tif` raster representing elevation, in meters above sea level, in south-western Utah: a **rasterio** file connection named `src_srtm` (see @fig-raster-crop (a))
+-   The `zion.gpkg` vector layer representing the Zion National Park boundaries (a `GeoDataFrame` named `zion`)
+
+Both target and cropping objects must have the same projection.
+Since it is easier and more precise to reproject vector layers, compared to rasters, we use the following expression to reproject (@sec-reprojecting-vector-geometries) the vector layer `zion` into the CRS of the raster `src_srtm`.
+
+```{julia}
+zion = GO.reproject(zion; target_crs = GI.crs(src_srtm))
+```
+
+To mask the image, i.e., convert all pixels which do not intersect with the `zion` polygon to `missing`, we use the `Rasters.mask` function.  `mask` supports any geometry, vector of geometries, feature collection, or table with a geometry column!
+
+```{julia}
+out_image_mask = Rasters.mask(src_srtm; with = zion)
+```
+
+::: {.callout-note}
+Note that since Julia has a native missing/NODATA value type, we don't need to specify a NODATA value for the `mask` function.
+
+However, it can sometimes be useful and more efficient to specify a sentinel value which Rasters treats as missing.
+
+You can do this by specifying the `missingval` keyword argument, like so:
+```julia
+out_image_mask = Rasters.mask(src_srtm; with = zion, missingval = 9999)
+```
+:::
+
+We can write this masked raster to file with `Rasters.write`, as usual:
+
+```{julia}
+Rasters.write("output/srtm_masked.tif", out_image_mask)
+```
+
+
+In Rasters.jl, cropping and masking are distinct operations.  Cropping, which reduces the raster extent to the extent of the vector layer, is accomplished with the `crop` function.
+
+Here, we simply pass the `zion` feature table to the `to` keyword argument, which indicates what to crop the raster "to".  We also set the `touches` keyword argument to `true`, to specify that pixels that partially overlap with the vector layer are included in the output.
+
+```{julia}
+out_image_crop = Rasters.crop(src_srtm; to = zion, touches = true)
+```
+
+You can also assemble an extent manually, using `Extents.Extent`, or extract one using `GI.extent`.
+
+We can crop our masked raster as well:
+
+```{julia}
+out_image_mask_crop = Rasters.crop(out_image_mask; to = zion, touches = true)
+```
+
+and we write it to file as usual:
+
+```{julia}
+Rasters.write("output/srtm_masked_cropped.tif", out_image_mask_crop)
+```
+
+@fig-raster-crop shows the original raster, and the three masking and/or cropping results.
+
+```{julia}
+#| label: fig-raster-crop
+#| fig-cap: Raster masking and cropping
+fig = Figure(size = (600, 600))
+
+ax1 = Axis(fig[1, 1]; title = "Original")
+plot!(ax1, src_srtm)
+poly!(ax1, zion.geom; color = :transparent, strokecolor = :black, strokewidth = 0.75)
+
+ax2 = Axis(fig[1, 2]; title = "Masked")
+plot!(ax2, out_image_mask)
+poly!(ax2, zion.geom; color = :transparent, strokecolor = :black, strokewidth = 0.75)
+
+ax3 = Axis(fig[2, 1]; title = "Cropped")
+plot!(ax3, out_image_crop)
+poly!(ax3, zion.geom; color = :transparent, strokecolor = :black, strokewidth = 0.75)
+
+ax4 = Axis(fig[2, 2]; title = "Masked+Cropped")
+plot!(ax4, out_image_mask_crop)
+poly!(ax4, zion.geom; color = :transparent, strokecolor = :black, strokewidth = 0.75)
+
+fig
+```
+
+
+## Raster extraction {#sec-raster-extraction}
+
+Raster extraction is the process of identifying and returning the values associated with a 'target' raster at specific locations, based on a (typically vector) geographic 'selector' object.
+The reverse of raster extraction---assigning raster cell values based on vector objects---is rasterization, described in @sec-rasterization.
+
+Rasters.jl provides modular raster extraction and statistics functions, and we use this package in the following examples.
+
+* To *points* (@sec-extraction-to-points) or to *lines* (@sec-extraction-to-lines), via the `Rasters.extract` function
+* To *polygons* (@sec-extraction-to-polygons), via the `Rasters.zonal` function
+
+
+
+### Extraction to points {#sec-extraction-to-points}
+
+The simplest type of raster extraction is getting the values of raster cells at specific points.
+To demonstrate extraction to points, we will use `zion_points`, which contains a sample of 30 locations within the Zion National Park (@fig-zion-points).
+
+```{julia}
+#| label: fig-zion-points
+#| fig-cap: 30 point locations within the Zion National Park, with elevation in the background
+fig, ax, plt = plot(src_srtm)
+scatter!(ax, zion_points.geom, color=:black, strokecolor=:white, strokewidth = 1);
+fig
+```
+
+
+The following expression extracts elevation values from `srtm.tif` according to `zion_points`, using `Rasters.extract`.
+
+
+::: {.callout-danger}
+The API here is not great, can we do better?  It currently returns a vector of named tuples, which is not very convenient.
+
+One thought is to use a Tables.jl materializer to convert the result if possible.  I understand the desire to return the geometry values.  But there must be a better way than this.
+:::
+
+```{julia}
+result1 = Rasters.extract(src_srtm, zion_points; geometry = false) .|> first
+```
+
+The first argument is the raster from which to extract values, and the second is the vector object (or collection of objects) according to which to extract the values. 
+
+
+
+::: {.callout-note}
+Rasters.jl does not yet support interpolation, so the values extracted are the values of the nearest cell center.  
+This corresponds to `interpolate='nearest'` in the Python `rasterstats` package.
+:::
+
+
+Either way, the resulting object is a vector of raster values, corresponding to `zion_points`.
+For example, here are the elevations of the first five points.
+
+```{julia}
+result1[1:5]
+```
+
+To get a `GeoDataFrame` with the original points geometries (and other attributes, if any), as well as the extracted raster values, we can assign the extraction result into a new column.
+
+```{julia}
+zion_points['elev1'] = result1
+zion_points
+```
+
+You can read from a single band by selecting the band in the Raster.  TODO finish this text
+
+### Extraction to lines {#sec-extraction-to-lines}
+
+
+Raster extraction is also applicable with line selectors.
+The typical line extraction algorithm is to extract one value for each raster cell touched by a line.
+However, this particular approach is not recommended to obtain values along the transects, as it is hard to get the correct distance between each pair of extracted raster values.
+
+For line extraction, a better approach is to split the line into many points (at equal distances along the line) and then extract the values for these points using the "extraction to points" technique (@sec-extraction-to-points).
+To demonstrate this, the code below creates (see @sec-vector-data for recap) `zion_transect`, a straight line going from northwest to southeast of the Zion National Park.
+
+```{julia}
+coords = [[-113.2, 37.45], [-112.9, 37.2]]
+zion_transect = GI.LineString(coords)
+```
+
+The utility of extracting heights from a linear selector is illustrated by imagining that you are planning a hike.
+The method demonstrated below provides an 'elevation profile' of the route (the line does not need to be straight), useful for estimating how long it will take due to long climbs.
+
+First, we need to create a layer consisting of points along our line (`zion_transect`), at specified intervals (e.g., `250`).
+To do that, we need to transform the line into a projected CRS (so that we work with true distances, in $m$), such as UTM.
+
+```{julia}
+zion_transect_utm = GO.reproject(zion_transect; target_crs = GFT.EPSG(32612), source_crs = GFT.EPSG(4326))
+```
+
+The printout of the new geometry shows this is still a straight line between two points, only with coordinates in a projected CRS.
+
+::: {.callout-danger}
+I've chosen to differ from the Python treatment here - instead of selecting some number of points along the line explicitly, I will segmentize the line and extract the points.  This is less precise, but we don't have the API to do arclength interpolation in GeometryOps yet.  Hopefully this will be added soon.
+
+cf. https://github.com/JuliaGeo/GeometryOps.jl/issues/210
+:::
+
+Here, we interpolate points along the line using `GO.segmentize`.  
+
+We first compute the length of the line, and then use this to segmentize the line into approximately 250 points.
+
+```{julia}
+_centroid, linelen = GO.centroid_and_length(zion_transect_utm)
+zion_transect_line = GO.segmentize(zion_transect_utm; max_distance = linelen / 250)
+```
+
+This gives us a collection of 251 points along the line.  We can extract the points by using `GI.getpoint` on the line, and then reproject the points to the CRS of the raster.
+
+```{julia}
+zion_transect_pnt = GO.reproject(GI.getpoint(zion_transect_line); target_crs = GI.crs(src_srtm), source_crs = GI.crs(zion_transect_line))
+```
+
+
+Finally, we extract the elevation values for each point in our transect and combine the information with `zion_transect_pnt` (after "promoting" it to a `GeoDataFrame`, to accommodate extra attributes), using the point extraction method shown earlier (@sec-extraction-to-points).
+We also attach the respective distance cutoff points `distances`.
+
+```{julia}
+zion_transect_pnt = DataFrame(geometry = zion_transect_pnt)
+
+result = Rasters.extract(src_srtm, zion_transect_pnt; geometry = false) .|> first
+zion_transect_pnt[!, "elev"] = result
+# Now, we can also compute distances along the line manually:
+zion_transect_pnt[!, "dist"] = [0.0; map(GO.distance, GI.getpoint(zion_transect_line)[1:end-1], GI.getpoint(zion_transect_line)[2:end])] |> cumsum
+zion_transect_pnt
+```
+
+
+The information in `zion_transect_pnt`, namely the `'dist'` and `'elev'` attributes, can now be used to draw an elevation profile, as illustrated in @fig-zion-transect.
+
+
+```{julia}
+#| label: fig-zion-transect
+#| fig-cap: Extracting a raster values profile to line 
+#| layout-ncol: 2
+#| fig-subcap: 
+#| - Raster and a line transect
+#| - Extracted elevation profile
+# Raster and a line transect
+fig, ax, plt = plot(src_srtm)
+lines!(ax, zion_transect; color = :black)
+poly!(ax, zion.geom; color = :transparent, strokecolor = :white, strokewidth = 0.75)
+fig
+# Elevation profile
+fig, ax, plt = lines(
+    zion_transect_pnt.dist, 
+    zion_transect_pnt.elev;
+    axis = (;
+        xlabel = "Distance (m)",
+        ylabel = "Elevation (m)",
+    )
+)
+```
+
+### Extraction to polygons {#sec-extraction-to-polygons}
+
+The final type of geographic vector object for raster extraction is polygons.
+Like lines, polygons tend to return many raster values per vector geometry.
+For continuous rasters (@fig-raster-extract-to-polygon (a)), we typically want to generate summary statistics for raster values per polygon, for example to characterize a single region or to compare many regions.
+The generation of raster summary statistics, by polygons, is demonstrated in the code below using `Rasters.zonal`, which creates a list of summary statistics (in this case a list of length 1, since there is just one polygon).
+
+::: {.callout-danger}
+Rasters.zonal does not allow passing multiple functions. Would this provide a speedup?  Do we care?
+:::
+
+```{julia}
+using Statistics # for `mean`
+rmean = Rasters.zonal(mean, src_srtm; of = zion)
+rmin = Rasters.zonal(minimum, src_srtm; of = zion)
+rmax = Rasters.zonal(maximum, src_srtm; of = zion)
+result = (rmean, rmin, rmax)
+```
+
+
+It's straightforward to transform the result to a DataFrame as well:
+
+```{julia}
+DataFrame(mean = rmean, min = rmin, max = rmax)
+```
+
+Because there is only one polygon in the example, single-element vectors are returned.
+However, if `zion` was composed of more than one polygon, we would accordingly get more elements in the returned vectors.
+The result provides useful summaries, for example that the maximum height in the park is `2661` $m$ above sea level.
+
+`Rasters.zonal` accepts any function that works on iterables and returns a single value, like `mean`, `minimum`, `maximum`, `std`, `median`, `mode`, `sum`, `prod`, etc.
+
+To count occurrences of categorical raster values within polygons (@fig-raster-extract-to-polygon (b)), we can use masking (@sec-raster-cropping) combined with `StatsBase.countmap`, as follows.
+
+```{julia}
+out_image = Rasters.mask(src_nlcd; with = GO.reproject(zion; target_crs = GI.crs(src_nlcd)))
+using StatsBase
+counts = StatsBase.countmap(out_image)
+```
+
+According to the result, for example, the value `2` ("Developed" class) appears in `4205` pixels within the Zion polygon.
+
+@fig-raster-extract-to-polygon illustrates the two types of raster extraction to polygons described above.
+
+```{julia}
+#| label: fig-raster-extract-to-polygon
+#| fig-cap: Sample data used for continuous and categorical raster extraction to a polygon
+#| layout-ncol: 2
+#| fig-subcap: 
+#| - Continuous raster
+#| - Categorical raster
+# Continuous raster
+fig, ax, plt = plot(src_srtm)
+poly!(ax, zion.geom; color = :transparent, strokecolor = :black, strokewidth = 0.75)
+fig
+# Categorical raster
+fig, ax, plt = plot(src_nlcd; colormap = :Set3, source = GI.crs(src_nlcd), axis = (; type = GeoAxis, dest = GI.crs(src_nlcd)))
+poly!(ax, zion.geom; source = GI.crs(zion.geom[1]), color = :transparent, strokecolor = :black, strokewidth = 0.75)
+ax.xgridvisible = false
+ax.ygridvisible = false
+fig # TODO: make GeoMakie better on small extents
+```
+
+<!-- jn: what is the state of plotting categorical rasters? can it read the color palette from a file? -->
+<!-- md: admittedly I've never used this functionality in either R or Python... If you have a sample data file I'll be happy to experiment with it. -->
+<!-- as: We haven't implemented this in Rasters.jl yet but it would not be hard potentially... -->
+

@@ -10,3 +10,4 @@ libs/
 /.quarto/
 docs
 /_site/
+output/*

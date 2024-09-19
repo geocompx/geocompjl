@@ -1,5 +1,7 @@
 ---
 engine: julia
+project:
+  execute-dir: project
 ---
 
 # Raster-vector interactions {#sec-raster-vector}

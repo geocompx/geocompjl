@@ -53,7 +53,7 @@ Both operations reduce object memory use and associated computational resources 
 
 We will use two layers to illustrate raster cropping:
 
--   The `srtm.tif` raster representing elevation, in meters above sea level, in south-western Utah: a **rasterio** file connection named `src_srtm` (see @fig-raster-crop (a))
+-   The `srtm.tif` raster representing elevation, in meters above sea level, in south-western Utah: a **Rasters.jl** file connection named `src_srtm` (see @fig-raster-crop (a))
 -   The `zion.gpkg` vector layer representing the Zion National Park boundaries (a `GeoDataFrame` named `zion`)
 
 Both target and cropping objects must have the same projection.
@@ -88,7 +88,7 @@ Rasters.write("output/srtm_masked.tif", out_image_mask; force = true
 ```
 
 
-In Rasters.jl, cropping and masking are distinct operations.  Cropping, which reduces the raster extent to the extent of the vector layer, is accomplished with the `crop` function.
+In **Rasters.jl**, cropping and masking are distinct operations.  Cropping, which reduces the raster extent to the extent of the vector layer, is accomplished with the `crop` function.
 
 Here, we simply pass the `zion` feature table to the `to` keyword argument, which indicates what to crop the raster "to".  We also set the `touches` keyword argument to `true`, to specify that pixels that partially overlap with the vector layer are included in the output.
 
@@ -142,7 +142,7 @@ fig
 Raster extraction is the process of identifying and returning the values associated with a 'target' raster at specific locations, based on a (typically vector) geographic 'selector' object.
 The reverse of raster extraction---assigning raster cell values based on vector objects---is rasterization, described in @sec-rasterization.
 
-Rasters.jl provides modular raster extraction and statistics functions, and we use this package in the following examples.
+**Rasters.jl** provides modular raster extraction and statistics functions, and we use this package in the following examples.
 
 * To *points* (@sec-extraction-to-points) or to *lines* (@sec-extraction-to-lines), via the `Rasters.extract` function
 * To *polygons* (@sec-extraction-to-polygons), via the `Rasters.zonal` function
@@ -181,7 +181,7 @@ The first argument is the raster from which to extract values, and the second is
 
 
 ::: {.callout-note}
-Rasters.jl does not yet support interpolation, so the values extracted are the values of the nearest cell center.  
+**Rasters.jl** does not yet support interpolation, so the values extracted are the values of the nearest cell center.  
 This corresponds to `interpolate='nearest'` in the Python `rasterstats` package.
 :::
 
@@ -357,7 +357,7 @@ fig # TODO: make GeoMakie better on small extents
 
 <!-- jn: what is the state of plotting categorical rasters? can it read the color palette from a file? -->
 <!-- md: admittedly I've never used this functionality in either R or Python... If you have a sample data file I'll be happy to experiment with it. -->
-<!-- as: We haven't implemented this in Rasters.jl yet but it would not be hard potentially... -->
+<!-- as: We haven't implemented this in **Rasters.jl** yet but it would not be hard potentially... -->
 
 
 ## Rasterization {#sec-rasterization}
@@ -367,7 +367,7 @@ Usually, the output raster is used for quantitative analysis (e.g., analysis of 
 As we saw in @sec-spatial-class, the raster data model has some characteristics that make it conducive to certain methods.
 Furthermore, the process of rasterization can help simplify datasets because the resulting values all have the same spatial resolution: rasterization can be seen as a special type of geographic data aggregation.
 
-Rasters.jl provides the `Rasters.rasterize` function for rasterizing vector data.  To make this happen, we need to have some definition for a "template" grid, i.e., the "template" raster defining the extent, resolution and CRS of the output.  We can also pass a pre-existing raster, in which case Rasters uses the existing grid definition.
+**Rasters.jl** provides the `Rasters.rasterize` function for rasterizing vector data.  To make this happen, we need to have some definition for a "template" grid, i.e., the "template" raster defining the extent, resolution and CRS of the output.  We can also pass a pre-existing raster, in which case Rasters uses the existing grid definition.
 
 
 As for the vector geometries and their associated values, the `Rasters.rasterize` function can take input in multiple ways:

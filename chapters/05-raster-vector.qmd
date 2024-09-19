@@ -195,7 +195,7 @@ result1[1:5]
 To get a `GeoDataFrame` with the original points geometries (and other attributes, if any), as well as the extracted raster values, we can assign the extraction result into a new column.
 
 ```{julia}
-zion_points['elev1'] = result1
+zion_points["elev1"] = result1
 zion_points
 ```
 
@@ -346,8 +346,9 @@ fig, ax, plt = plot(src_srtm)
 poly!(ax, zion.geom; color = :transparent, strokecolor = :black, strokewidth = 0.75)
 fig
 # Categorical raster
-fig, ax, plt = plot(src_nlcd; colormap = :Set3, source = GI.crs(src_nlcd), axis = (; type = GeoAxis, dest = GI.crs(src_nlcd)))
+fig, ax, plt = plot(src_nlcd; colormap = cgrad(:Set3; categorical = true), source = GI.crs(src_nlcd), axis = (; type = GeoAxis, dest = GI.crs(src_nlcd)))
 poly!(ax, zion.geom; source = GI.crs(zion.geom[1]), color = :transparent, strokecolor = :black, strokewidth = 0.75)
+cm = Colorbar(fig[1, 2], plt)
 ax.xgridvisible = false
 ax.ygridvisible = false
 fig # TODO: make GeoMakie better on small extents

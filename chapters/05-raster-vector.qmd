@@ -296,7 +296,7 @@ The information in `zion_transect_pnt`, namely the `"dist"` and `"elev"` attribu
 fig, ax, plt = plot(src_srtm)
 lines!(ax, zion_transect; color = :black)
 poly!(ax, zion.geom; color = :transparent, strokecolor = :white, strokewidth = 0.75)
-fig |> display
+display(fig)
 # Elevation profile
 fig, ax, plt = lines(
     zion_transect_pnt.dist, 
@@ -363,7 +363,7 @@ According to the result, for example, the value `2` ("Developed" class) appears 
 # Continuous raster
 fig, ax, plt = plot(src_srtm)
 poly!(ax, zion.geom; color = :transparent, strokecolor = :black, strokewidth = 0.75)
-fig |> display
+display(fig)
 # Categorical raster
 fig, ax, plt = plot(src_nlcd; colormap = cgrad(:Set3; categorical = true), source = GI.crs(src_nlcd), axis = (; type = GeoAxis, dest = GI.crs(src_nlcd)))
 poly!(ax, zion.geom; source = GI.crs(zion.geom[1]), color = :transparent, strokecolor = :black, strokewidth = 0.75)
@@ -502,7 +502,7 @@ The input point layer `cycle_hire_osm_projected` and the three variants of raste
 nonmissing_df = dropmissing(cycle_hire_osm_projected, [:capacity, :geom])
 f, a, p = scatter(nonmissing_df.geom; color = nonmissing_df.capacity)
 Colorbar(f[1, 2], p)
-f |> display
+display(f)
 # Presence/Absence
 plot(ch_raster1) |> display
 # Point counts
@@ -594,7 +594,7 @@ TODO: firm up the description here and add links.
 fig, ax, plt = plot(california_raster1; colormap = cgrad(:Set3; categorical = true))
 lines!(ax, california_borders; color = :darkgrey, linewidth = 1)
 scatter!(ax, vec(dp); markersize = 3, color = :black)
-fig |> display
+display(fig)
 # Polygon rasterization
 fig, ax, plt = plot(california_raster2; colormap = cgrad(:Set3; categorical = true))
 lines!(ax, california_borders; color = :darkgrey, linewidth = 1)
@@ -696,7 +696,7 @@ GeoDataFrames.read("output/elev.gpkg")
 # Input raster
 fig, ax, plt = plot(src_elev)
 scatter!(ax, df.XY; color = df.layer1)
-fig |> display
+display(fig)
 # Points
 fig, ax, plt = plot(src_elev; alpha = 0.1)
 scatter!(ax, df.XY; color = df.layer1, strokecolor = :black, strokewidth = 1)

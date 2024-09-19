@@ -735,7 +735,7 @@ factor = 2/10
 r = Rasters.resample(src_nz_elev; size = round.(Int, size(src_nz_elev) .* factor), method = :average)
 ```
 
-The resulting array `r`/`new_transform` and the lines layer `coastline` are plotted in @fig-raster-distances1.
+The resulting raster `r` and the lines layer `coastline` are plotted in @fig-raster-distances1.
 Note that the raster values are average elevations based on $5 \times 5$ pixels, but this is irrelevant for the subsequent calculation; the raster is going to be used as a template, and all of its values will be replaced with distances to coastline (@fig-raster-distances2).
 
 
@@ -748,7 +748,7 @@ fig
 ```
 
 To calculate the actual distances, we must convert each pixel to a vector (point) geometry.
-For this purpose, we use the technique demonstrated in @sec-raster-to-points.
+For this purpose, we use the technique demonstrated in @sec-raster-to-points, but simply select the pixels that are not `missing`.
 
 ```{julia}
 dp = DimPoints(r)

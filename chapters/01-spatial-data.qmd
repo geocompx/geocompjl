@@ -92,7 +92,7 @@ elev_raster = Raster(elev, (new_x, new_y))
 The raster can now be plotted in its coordinate system, passing the array `elev` along with the transformation matrix `new_transform` to `rasterio.plot.show` (@fig-rasterio-plot-elev).
 The raster can now be plotted in its coordinate system, passing the array `elev` along with the transformation matrix `new_transform` to `rasterio.plot.show` (@fig-rasterio-plot-elev).
 
-```{python}
+```{julia}
 #| label: fig-rasterio-plot-elev
 #| fig-cap: Plot of the `elev` raster, a minimal example of a continuous raster, created from scratch
 plot(elev_raster)
@@ -100,7 +100,7 @@ plot(elev_raster)
 
 The `grain` raster can be plotted the same way, as we are going to use the same transformation matrix for it as well (@fig-rasterio-plot-grain).
 
-```{python}
+```{julia}
 #| label: fig-rasterio-plot-grain
 #| fig-cap: Plot of the `grain` raster, a minimal example of a categorical raster, created from scratch
 plot(Raster(grain, (new_x, new_y)))

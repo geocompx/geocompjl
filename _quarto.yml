@@ -5,17 +5,17 @@ project:
 book:
   title: "Geocomputation with Julia"
   page-footer: "Geocomputation with Julia was written by Maarten Pronk, Rafael Schouten, Anshul Singhvi, Felix Cremer and Jakub Nowosad."
-  author: "Maarten Pronk, Rafael Schouten, Anshul Singhvi, Felix Cremer and Jakub Nowosad."
+  author: "Maarten Pronk, Rafael Schouten, Anshul Singhvi, Felix Cremer and Jakub Nowosad"
   description: |
     An introductory resource for working with geographic data in Julia
-  cover-image: https://geocompx.org/static/img/book_cover_py_tmp_small.png
+  # cover-image: https://geocompx.org/static/img/book_cover_py_tmp_small.png
   site-url: https://geocompx.github.io/geocompjl/
   repo-url: https://github.com/geocompx/geocompjl/
   repo-branch: main
   repo-actions: [edit]
   sharing: [twitter, facebook, linkedin]
-  #google-analytics: G-ZEMGTY4VV3
-  #favicon: favicon-32x32.png
+  # google-analytics: G-ZEMGTY4VV3
+  # favicon: favicon-32x32.png
   chapters:
     - index.qmd
     - chapters/preface.qmd

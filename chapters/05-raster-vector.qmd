@@ -63,7 +63,7 @@ These concepts are demonstrated using data from previous chapters, to understand
 Many geographic data projects involve integrating data from many different sources, such as remote sensing images (rasters) and administrative boundaries (vectors).
 Often the extent of input raster datasets is larger than the area of interest.
 In this case, raster *masking*, *cropping*, or both, are useful for unifying the spatial extent of input data (@fig-raster-crop (b) and (c), and the following two examples, illustrate the difference between masking and cropping).
-Both operations reduce object memory use and associated computational resources for subsequent analysis steps, and may be a necessary preprocessing step before creating attractive maps involving raster data.
+Both operations reduce memory use and computational demand for subsequent analysis, and may be a necessary preprocessing step before creating attractive maps involving raster data.
 
 We will use two layers to illustrate raster cropping:
 
@@ -143,7 +143,7 @@ out_image_mask = Rasters.mask(src_srtm; with = zion, missingval = 9999)
 ```
 :::
 
-We can write this masked raster to file with `Rasters.write`, as usual:
+We can write this masked raster to file with `Rasters.write`:
 
 ```{julia}
 Rasters.write("output/srtm_masked.tif", out_image_mask; force = true
@@ -284,7 +284,7 @@ The utility of extracting heights from a linear selector is illustrated by imagi
 The method demonstrated below provides an 'elevation profile' of the route (the line does not need to be straight), useful for estimating how long it will take by determining the cumulative elevation gain of your journey.
 
 First, we need to create a layer consisting of points along our line (`zion_transect`), at specified intervals (e.g., `250`).
-To do that, we need to transform the line into a projected CRS (so that we work with true distances, in $m$), such as UTM.
+To do that, we need to transform the line into a projected CRS (so that we work with true distances, in $m$), such as [Universal Transverse Mercator](https://en.wikipedia.org/wiki/Universal_Transverse_Mercator_coordinate_system).
 
 ```{julia}
 zion_transect_utm = GO.reproject(zion_transect; target_crs = GFT.EPSG(32612), source_crs = GFT.EPSG(4326))
@@ -377,7 +377,8 @@ display(fig)
 The final type of geographic vector object that can be used for raster extraction is polygons.  
 Like lines, polygons tend to return many raster values per vector geometry.
 For continuous rasters (@fig-raster-extract-to-polygon (a)), we typically want to generate summary statistics for raster values per polygon, for example to characterize a single region or to compare many regions.
-The generation of raster summary statistics, by polygons, is demonstrated in the code below using `Rasters.zonal`, which creates a list of summary statistics (in this case a list of length 1, since there is just one polygon).
+The generation of raster summary statistics, by polygons, is demonstrated in the code below using `Rasters.zonal`, which creates a list of summary statistics for "zones" defined by geometry.
+In this case, a vector of length 1 is returned, since there is just one polygon in the `DataFrame`.
 
 ```{julia}
 using Statistics # for `mean`
@@ -425,7 +426,7 @@ Rasters.zonal(x -> (mean(x), minimum(x), maximum(x)), src_srtm; of = zion)
 
 :::
 
-It's straightforward to transform the result to a DataFrame as well:
+We then transform the result to a `DataFrame`, which makes it easier to track and handle geometry attributes:
 
 ```{julia}
 DataFrame(mean = rmean, min = rmin, max = rmax)
@@ -500,7 +501,7 @@ Finally, we can set the `fill` value, which is the value that "unaffected" pixel
 
 How the `Rasters.rasterize` function works with all of these various parameters will be made clear in the next examples.
 
-The geographic resolution of the "template" raster has a major impact on the results: if it is too low (cell size is too large), the result may miss the full geographic variability of the vector data; if it is too high, computational times may be excessive.
+The spatial resolution (area of each "pixel") of the "template" raster has a major impact on the results: if it is too low (cell size is too large), the result may miss the full geographic variability of the vector data; if it is too high, computational times may be excessive.
 There are no simple rules to follow when deciding an appropriate geographic resolution, which is heavily dependent on the intended use of the results.
 Often the target resolution is imposed on the user, for example when the output of rasterization needs to be aligned to an existing raster.
 

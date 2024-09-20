@@ -14,6 +14,8 @@ github_ref        = get(ENV, "GITHUB_REF",        "") # "refs/heads/$(branchname
 
 cfg = (; github_repository, github_event_name, github_ref)
 
+io = stdout
+
 if cfg.github_event_name == "pull_request"
     build_type = :preview
 elseif occursin(r"^refs\/tags\/(.*)$", cfg.github_ref)

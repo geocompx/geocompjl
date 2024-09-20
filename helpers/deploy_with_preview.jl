@@ -71,6 +71,7 @@ end
 target_dir = abspath("./docs") # builddir
 upstream = "https://github.com/geocompx/geocompjl.git"
 branch = "gh-pages"
+devbranch = "main"
 
 
 sha = cd(dirname(@__DIR__)) do

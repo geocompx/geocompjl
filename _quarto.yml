@@ -19,7 +19,7 @@ book:
   # favicon: favicon-32x32.png
   chapters:
     - index.qmd
-    - chapters/preface.qmd
+    #- chapters/preface.qmd
     - chapters/01-spatial-data.qmd
     - chapters/02-attribute-operations.qmd
     - chapters/03-spatial-operations.qmd

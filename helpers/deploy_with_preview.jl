@@ -52,7 +52,7 @@ elseif build_type == :preview
     subfolder = "previews/PR$(something(pr_number, 0))"
 end
 
-quarto_rendered = success(`quarto render`)
+quarto_rendered = success(pipeline(`quarto render`; stdout=stdout, stderr=stderr))
 
 println("$(marker(all_ok)) All environment variables are set correctly.")
 println("$(marker(quarto_rendered)) Quarto rendered successfully.")
@@ -181,7 +181,7 @@ end
 # The upstream URL to which we push new content authenticated with token
 upstream = authenticated_repo_url()
 try
-    cd(git_commands, temp)
+    cd(git_commands, mktempdir())
     # post_status(deploy_config; repo=repo, type="success", subfolder=subfolder)
 catch e
     @error "Failed to push:" exception=(e, catch_backtrace())

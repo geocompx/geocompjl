@@ -1,5 +1,7 @@
 ---
 engine: julia
+project:
+  execute-dir: project
 ---
 
 # Geometry operations {#sec-geometric-operations}

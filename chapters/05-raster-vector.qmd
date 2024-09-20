@@ -1,7 +1,894 @@
 ---
 engine: julia
+project:
+  execute-dir: project
 ---
 
 # Raster-vector interactions {#sec-raster-vector}
 
 ## Prerequisites {.unnumbered}
+
+This chapter requires importing the following packages:
+
+```{julia}
+using GeoDataFrames, DataFrames
+using Rasters, ArchGDAL # Raster I/O and operations
+using Proj # activate reprojection capabilities
+import GeoInterface as GI, GeometryOps as GO, LibGEOS as LG # Vector operations
+import GeoFormatTypes as GFT # for CRS types
+using GeoMakie, CairoMakie # plotting
+```
+
+Here, we will also set the theme in Makie.jl to ensure that all `surface` and `heatmap` plots are represented in file as bitmap images, rather than the raw data.  
+This is necessary only because Quarto breaks on SVGs above a certain size.  
+You can feel free to set this for your own work, but it is not required.
+
+```{julia}
+Makie.set_theme!(
+    Heatmap = (; rasterize = 2),
+    Surface = (; rasterize = 2),
+)
+```
+
+It also relies on the following data files:
+
+```{julia}
+src_srtm = Raster("data/srtm.tif")
+src_nlcd = Raster("data/nlcd.tif")
+src_grain = Raster("output/grain.tif")
+src_elev = Raster("output/elev.tif")
+src_dem = Raster("data/dem.tif")
+zion = GeoDataFrames.read("data/zion.gpkg")
+zion_points = GeoDataFrames.read("data/zion_points.gpkg")
+cycle_hire_osm = GeoDataFrames.read("data/cycle_hire_osm.gpkg")
+us_states = GeoDataFrames.read("data/us_states.gpkg")
+nz = GeoDataFrames.read("data/nz.gpkg")
+src_nz_elev = Raster("data/nz_elev.tif")
+```
+
+## Introduction
+
+This chapter focuses on interactions between raster and vector geographic data models, both introduced in @sec-spatial-class.
+It includes four main techniques:
+
+-   Raster cropping and masking using vector objects (@sec-raster-cropping)
+-   Extracting raster values using different types of vector data (@sec-raster-extraction)
+-   Raster to vector conversion (@sec-rasterization)
+-   Vector to raster conversion (@sec-spatial-vectorization)
+
+These concepts are demonstrated using data from previous chapters, to understand their potential real-world applications.
+
+## Raster masking and cropping {#sec-raster-cropping}
+
+Many geographic data projects involve integrating data from many different sources, such as remote sensing images (rasters) and administrative boundaries (vectors).
+Often the extent of input raster datasets is larger than the area of interest.
+In this case, raster *masking*, *cropping*, or both, are useful for unifying the spatial extent of input data (@fig-raster-crop (b) and (c), and the following two examples, illustrate the difference between masking and cropping).
+Both operations reduce memory use and computational demand for subsequent analysis, and may be a necessary preprocessing step before creating attractive maps involving raster data.
+
+We will use two layers to illustrate raster cropping:
+
+-   The `srtm.tif` raster representing elevation, in meters above sea level, in south-western Utah: a **Rasters.jl** file connection named `src_srtm` (see @fig-raster-crop (a))
+-   The `zion.gpkg` vector layer representing the Zion National Park boundaries (a `DataFrame` named `zion`)
+
+Both target and cropping objects must have the same projection.
+Since it is easier and more precise to reproject vector layers, compared to rasters, we use the following expression to reproject (@sec-reprojecting-vector-geometries) the vector layer `zion` into the [coordinate reference system](https://en.wikipedia.org/wiki/Spatial_reference_system) (CRS) of the raster `src_srtm`.
+The CRS defines how the coordinates of the geometry relate to locations on the surface of the Earth.
+
+```{julia}
+zion = GO.reproject(zion; target_crs = GI.crs(src_srtm))
+```
+
+To mask the image, i.e., convert all pixels which do not intersect with the `zion` polygon to `missing`, we use the `Rasters.mask` function.  
+`mask` supports any geometry, vector of geometries, feature collection, or table with a geometry column!
+
+The tabset below shows all the different ways to mask a raster.  We'll go forward with the approach of using a DataFrame.
+
+:::{.panel-tabset}
+## DataFrame
+```{julia}
+out_image_mask = Rasters.mask(src_srtm; with = zion)
+```
+
+## Single geometry
+
+```{julia}
+masker = zion.geom[1]
+```
+
+```{julia}
+Rasters.mask(src_srtm; with = masker)
+```
+
+## Vector of geometries
+
+```{julia}
+masker = zion.geom
+```
+
+```{julia}
+Rasters.mask(src_srtm; with = masker)
+```
+
+<!-- TODO: make this work with Rasters.jl - track issue https://github.com/rafaqz/Rasters.jl/issues/755
+## Extent taken from geometry
+
+```{julia}
+masker = GI.extent(zion.geom[1])
+```
+
+```{julia}
+Rasters.mask(src_srtm; with = masker)
+```
+
+## Manual extent
+
+```{julia}
+# masker = GI.Extents.Extent(X = (), Y = ())
+```
+
+```{julia}
+# Rasters.mask(src_srtm; with = masker)
+```
+-->
+:::
+
+::: {.callout-note}
+Note that since Julia has a native missing/NODATA value type, we don't need to specify a NODATA value for the `mask` function.
+
+However, it can sometimes be useful and more efficient to specify a sentinel value which Rasters treats as missing.
+
+You can do this by specifying the `missingval` keyword argument, like so:
+```julia
+out_image_mask = Rasters.mask(src_srtm; with = zion, missingval = 9999)
+```
+:::
+
+We can write this masked raster to file with `Rasters.write`:
+
+```{julia}
+Rasters.write("output/srtm_masked.tif", out_image_mask; force = true
+)
+```
+
+
+In **Rasters.jl**, cropping and masking are distinct operations.  Cropping, which reduces the raster extent to the extent of the vector layer, is accomplished with the `crop` function.
+
+Here, we simply pass the `zion` feature table to the `to` keyword argument, which indicates what to crop the raster "to".  We also set the `touches` keyword argument to `true`, to specify that pixels that partially overlap with the vector layer are included in the output.
+
+```{julia}
+out_image_crop = Rasters.crop(src_srtm; to = zion, touches = true)
+```
+
+You can also assemble an extent manually, using `Extents.Extent`, or extract one using `GI.extent`.
+
+We can crop our masked raster as well:
+
+```{julia}
+out_image_mask_crop = Rasters.crop(out_image_mask; to = zion, touches = true)
+```
+
+and we write it to file using `Rasters.write`:
+
+```{julia}
+Rasters.write("output/srtm_masked_cropped.tif", out_image_mask_crop; force = true)
+```
+
+@fig-raster-crop shows the original raster, and the three masking and/or cropping results.
+
+```{julia}
+#| label: fig-raster-crop
+#| fig-cap: Raster masking and cropping
+fig = Figure(size = (600, 600))
+
+ax1 = Axis(fig[1, 1]; title = "Original")
+plot!(ax1, src_srtm)
+poly!(ax1, zion.geom; color = :transparent, strokecolor = :black, strokewidth = 0.75)
+
+ax2 = Axis(fig[1, 2]; title = "Masked")
+plot!(ax2, out_image_mask)
+poly!(ax2, zion.geom; color = :transparent, strokecolor = :black, strokewidth = 0.75)
+
+ax3 = Axis(fig[2, 1]; title = "Cropped")
+plot!(ax3, out_image_crop)
+poly!(ax3, zion.geom; color = :transparent, strokecolor = :black, strokewidth = 0.75)
+
+ax4 = Axis(fig[2, 2]; title = "Masked+Cropped")
+plot!(ax4, out_image_mask_crop)
+poly!(ax4, zion.geom; color = :transparent, strokecolor = :black, strokewidth = 0.75)
+
+display(fig)
+```
+
+
+## Raster extraction {#sec-raster-extraction}
+
+Raster extraction is the process of identifying and returning the values associated with a 'target' raster at specific locations, based on a (typically vector) geographic 'selector' object.
+The reverse of raster extraction---assigning raster cell values based on vector objects---is rasterization, described in @sec-rasterization.
+
+**Rasters.jl** provides modular raster extraction and statistics functions, and we use this package in the following examples.
+
+* To *points* (@sec-extraction-to-points) or to *lines* (@sec-extraction-to-lines), via the `Rasters.extract` function
+* To *polygons* (@sec-extraction-to-polygons), via the `Rasters.zonal` function
+
+
+
+### Extraction to points {#sec-extraction-to-points}
+
+The simplest type of raster extraction is getting the values of raster cells at specific points.
+To demonstrate extraction to points, we will use `zion_points`, which contains a sample of 30 locations within the Zion National Park (@fig-zion-points).
+
+```{julia}
+#| label: fig-zion-points
+#| fig-cap: 30 point locations within the Zion National Park, with elevation in the background
+fig, ax, plt = plot(src_srtm)
+scatter!(ax, zion_points.geom, color=:black, strokecolor=:white, strokewidth = 1);
+display(fig)
+```
+
+
+The following expression extracts elevation values from `srtm.tif` according to `zion_points`, using `Rasters.extract`.
+
+
+::: {.callout-danger}
+The API here is not great, can we do better?  It currently returns a vector of named tuples, which is not very convenient.
+
+One thought is to use a Tables.jl materializer to convert the result if possible.  I understand the desire to return the geometry values.  But there must be a better way than this.
+:::
+
+```{julia}
+result1 = DataFrame(Rasters.extract(src_srtm, zion_points; geometry = false))
+```
+
+The first argument is the raster from which to extract values, and the second is the vector object (or collection of objects) according to which to extract the values. 
+
+
+
+::: {.callout-note}
+**Rasters.jl** does not yet support interpolation in extraction, so the values extracted are the values of the nearest cell center.  
+This corresponds to `interpolate='nearest'` in the Python `rasterstats` package.
+:::
+
+
+Either way, the resulting object is a vector of raster values, corresponding to `zion_points`.
+For example, here are the elevations of the first five points.
+
+```{julia}
+result1[1:5, ""]
+```
+
+To get a `DataFrame` with the original points geometries (and other attributes, if any), as well as the extracted raster values, we can assign the extraction result into a new column.
+
+```{julia}
+zion_points[!, "elev1"] = result1[!, ""]
+zion_points
+```
+
+You can read from a single band by selecting the band in the Raster.  TODO finish this text
+
+### Extraction to lines {#sec-extraction-to-lines}
+
+
+Raster extraction is also applicable with line selectors.
+The typical line extraction algorithm is to extract one value for each raster cell touched by a line.
+However, this particular approach is not recommended to obtain values along the transects, as it is hard to get the correct distance between each pair of extracted raster values.
+
+For line extraction, a better approach is to split the line into many points (at equal distances along the line) and then extract the values for these points using the "extraction to points" technique (@sec-extraction-to-points).
+To demonstrate this, the code below creates (see @sec-vector-data for recap) `zion_transect`, a straight line going from northwest to southeast of the Zion National Park.
+
+```{julia}
+coords = [[-113.2, 37.45], [-112.9, 37.2]]
+zion_transect = GI.LineString(coords)
+```
+
+The utility of extracting heights from a linear selector is illustrated by imagining that you are planning a hike.
+The method demonstrated below provides an 'elevation profile' of the route (the line does not need to be straight), useful for estimating how long it will take by determining the cumulative elevation gain of your journey.
+
+First, we need to create a layer consisting of points along our line (`zion_transect`), at specified intervals (e.g., `250`).
+To do that, we need to transform the line into a projected CRS (so that we work with true distances, in $m$), such as [Universal Transverse Mercator](https://en.wikipedia.org/wiki/Universal_Transverse_Mercator_coordinate_system).
+
+```{julia}
+zion_transect_utm = GO.reproject(zion_transect; target_crs = GFT.EPSG(32612), source_crs = GFT.EPSG(4326))
+```
+
+The printout of the new geometry shows this is still a straight line between two points, only with coordinates in a projected CRS.
+
+::: {.callout-danger}
+I've chosen to differ from the Python treatment here - instead of selecting some number of points along the line explicitly, I will segmentize the line and extract the points.  This is less precise, but we don't have the API to do arclength interpolation in GeometryOps yet.  Hopefully this will be added soon.
+
+cf. https://github.com/JuliaGeo/GeometryOps.jl/issues/210
+:::
+
+Here, we interpolate points along the line using `GO.segmentize`.  This operation is sometimes called line densification.
+
+We first compute the length of the line, and then use this to segmentize the line into approximately 250 points.
+
+```{julia}
+_centroid, linelen = GO.centroid_and_length(zion_transect_utm)
+```
+
+Now that we have the length of the line, we can choose a distance such that we get around 250 points along the line.
+
+```{julia}
+zion_transect_line = GO.segmentize(zion_transect_utm; max_distance = linelen / 250)
+```
+
+This gives us a collection of 251 points along the line.  We can extract the points that define the line segments by using `GI.getpoint` on the line, and then reproject the points to the CRS of the raster.
+
+```{julia}
+line_points = GI.getpoint(zion_transect_line)
+zion_transect_pnt = GO.reproject(line_points; target_crs = GI.crs(src_srtm), source_crs = GI.crs(zion_transect_line))
+```
+
+Finally, we extract the elevation values for each point in our transect and combine the information with `zion_transect_pnt` (after "promoting" it to a `DataFrame`, to accommodate extra attributes), using the point extraction method shown earlier (@sec-extraction-to-points).
+We also attach the distance of each point along the line, to be used to plot an elevation profile.
+
+```{julia}
+zion_transect_pnt = DataFrame(geometry = zion_transect_pnt)
+
+result = Rasters.extract(src_srtm, zion_transect_pnt; geometry = false)
+# `Rasters.extract` returns a vector of tuples, so we take the first element of each tuple
+result = first.(result)
+# Add elevation data to a new data frame column, named `elevation`
+zion_transect_pnt[!, "elevation"] = result
+```
+
+We also want to visualize an elevation profile along this line, so we compute the distances along the line manually. Using `GO.distance`, we can get the distance between successive points along the line.  Then, we add `0.0` to the beginning of the array of distances, and sum along that array to get the cumulative distance along the line.
+
+```{julia}
+# Compute distances between successive points along the line
+distances_between_points = GO.distance.(zion_transect_pnt.geometry[1:end-1], zion_transect_pnt.geometry[2:end])
+# Compute cumulative distances along the line
+cumulative_distances = cumsum([0.0; distances_between_points])
+# Assign the distances to a new column in the data frame
+zion_transect_pnt[!, "distance"] = cumulative_distances
+zion_transect_pnt
+```
+
+
+The information in `zion_transect_pnt`, namely the `"dist"` and `"elev"` attributes, can now be used to draw an elevation profile, as illustrated in @fig-zion-transect.
+
+
+```{julia}
+#| label: fig-zion-transect
+#| fig-cap: Extracting a raster values profile to line 
+#| layout-ncol: 2
+#| fig-subcap: 
+#| - Raster and a line transect
+#| - Extracted elevation profile
+# Raster and a line transect
+fig, ax, plt = plot(src_srtm)
+lines!(ax, zion_transect; color = :black)
+poly!(ax, zion.geom; color = :transparent, strokecolor = :white, strokewidth = 0.75)
+display(fig)
+# Elevation profile
+fig, ax, plt = lines(
+    zion_transect_pnt.distance, 
+    zion_transect_pnt.elevation;
+    axis = (;
+        xlabel = "Distance (m)",
+        ylabel = "Elevation (m)",
+    )
+)
+display(fig)
+```
+
+### Extraction to polygons {#sec-extraction-to-polygons}
+
+The final type of geographic vector object that can be used for raster extraction is polygons.  
+Like lines, polygons tend to return many raster values per vector geometry.
+For continuous rasters (@fig-raster-extract-to-polygon (a)), we typically want to generate summary statistics for raster values per polygon, for example to characterize a single region or to compare many regions.
+The generation of raster summary statistics, by polygons, is demonstrated in the code below using `Rasters.zonal`, which creates a list of summary statistics for "zones" defined by geometry.
+In this case, a vector of length 1 is returned, since there is just one polygon in the `DataFrame`.
+
+```{julia}
+using Statistics # for `mean`
+rmean = Rasters.zonal(mean, src_srtm; of = zion)
+rmin = Rasters.zonal(minimum, src_srtm; of = zion)
+rmax = Rasters.zonal(maximum, src_srtm; of = zion)
+result = (rmean, rmin, rmax)
+```
+
+`Rasters.zonal` accepts any function that works on iterables (collections of elements that can be looped over) and returns a single value, like `mean`, `minimum`, `maximum`, `std`, `median`, `mode`, `sum`, `prod`, etc.  
+
+::: {.callout-tip collapse="true"}  
+## You can pass your own custom function too!  
+
+```{julia}
+# This is about the worst possible implementation of a mean function,
+# please don't use it in real life!
+function my_mean(iterable)
+    result = 0.0
+    count = 0
+    for value in iterable
+        result += value
+        count += 1
+    end
+    result /= count
+    return result
+end
+
+Rasters.zonal(my_mean, src_srtm; of = zion)
+```
+
+:::  
+
+::: {.callout-tip collapse="true"}
+## You can pass multiple functions to a single `Rasters.zonal` call
+
+Sometimes, in order to be most efficient with raster access, we might want to pass multiple functions to a single `Rasters.zonal` call.
+We can do this by passing a function that returns a tuple of values to `Rasters.zonal`.
+
+For example, consider:
+```{julia}
+using Statistics # for `mean`
+Rasters.zonal(x -> (mean(x), minimum(x), maximum(x)), src_srtm; of = zion)
+```
+
+:::
+
+We then transform the result to a `DataFrame`, which makes it easier to track and handle geometry attributes:
+
+```{julia}
+DataFrame(mean = rmean, min = rmin, max = rmax)
+```
+
+Because there is only one polygon in the example, single-element vectors are returned.
+However, if `zion` was composed of more than one polygon, we would accordingly get more elements in the returned vectors.
+The result provides useful summaries, for example that the maximum height in the park is `2661` $m$ above sea level.
+
+To count occurrences of categorical raster values within polygons (@fig-raster-extract-to-polygon (b)), we can use masking (@sec-raster-cropping) combined with `StatsBase.countmap`, as follows.
+
+```{julia}
+out_image = Rasters.mask(src_nlcd; with = GO.reproject(zion; target_crs = GI.crs(src_nlcd)))
+using StatsBase
+counts = StatsBase.countmap(out_image)
+```
+
+According to the result, for example, the value `2` ("Developed" class) appears in `4205` pixels within the Zion polygon.
+
+@fig-raster-extract-to-polygon illustrates the two types of raster extraction to polygons described above.
+
+```{julia}
+#| label: fig-raster-extract-to-polygon
+#| fig-cap: Sample data used for continuous and categorical raster extraction to a polygon
+#| layout-ncol: 2
+#| fig-subcap: 
+#| - Continuous raster
+#| - Categorical raster
+# Continuous raster
+fig, ax, plt = plot(src_srtm)
+poly!(ax, zion.geom; color = :transparent, strokecolor = :black, strokewidth = 0.75)
+display(fig)
+# Categorical raster
+fig, ax, plt = plot(src_nlcd; colormap = cgrad(:Set3; categorical = true), source = GI.crs(src_nlcd), axis = (; type = GeoAxis, dest = GI.crs(src_nlcd)))
+poly!(ax, zion.geom; source = GI.crs(zion.geom[1]), color = :transparent, strokecolor = :black, strokewidth = 0.75)
+cm = Colorbar(fig[1, 2], plt)
+ax.xgridvisible = false
+ax.ygridvisible = false
+display(fig) # TODO: make GeoMakie better on small extents
+```
+
+<!-- jn: what is the state of plotting categorical rasters? can it read the color palette from a file? -->
+<!-- md: admittedly I've never used this functionality in either R or Python... If you have a sample data file I'll be happy to experiment with it. -->
+<!-- as: We haven't implemented this in **Rasters.jl** yet but it would not be hard potentially... -->
+
+
+## Rasterization {#sec-rasterization}
+
+Rasterization is the conversion of vector objects into their representation in raster objects.
+Usually, the output raster is used for quantitative analysis (e.g., analysis of terrain) or modeling.
+As we saw in @sec-spatial-class, the raster data model has some characteristics that make it conducive to certain methods.
+Furthermore, the process of rasterization can help simplify datasets because the resulting values all have the same spatial resolution: rasterization can be seen as a special type of geographic data aggregation.
+
+**Rasters.jl** provides the `Rasters.rasterize` function for rasterizing vector data.  To make this happen, we need to have some definition for a "template" grid, i.e., the "template" raster defining the extent, resolution and CRS of the output.  We can also pass a pre-existing raster, in which case Rasters uses the existing grid definition.
+
+
+As for the vector geometries and their associated values, the `Rasters.rasterize` function can take input in multiple ways:
+-    `; data::FeatureCollection, fill::Symbol` means that the values of the column passed to `fill` will be used to fill the raster.
+-    `; data::Vector{Geometry}, fill::Vector` means that the values passed to `fill` will be associated with each geometry in `data` and used to fill the raster.
+-    `; data::Any, fill::Function` calls `fill` with the current value
+
+Furthermore, we define how to handle multiple values burned into the same pixel, in the first argument called `reducer`.  
+By default, this is `last`, meaning that the last polygon to be rasterized takes precedence.  
+However, we can pass any function that takes in an iterable and returns a single value, like `mean`, `minimum`, `maximum`, `std`, `median`, `mode`, `sum`, `prod`, etc.  
+Many of these may not make sense to use but they are useful to know of.
+
+
+Furthermore, we define how to deal with multiple values burned into the same pixel, in the first argument called `reducer`.  By default, this is `last`, meaning that the last polygon to be rasterized takes precedence.  However, we can pass any function that takes in an iterable and returns a single value, like `mean`, `minimum`, `maximum`, `std`, `median`, `mode`, `sum`, `prod`, etc.  Many of these may not make sense to use but they are useful to know of.
+
+
+Finally, we can set the `fill` value, which is the value that "unaffected" pixels get, with `fill=0` being the default.
+
+How the `Rasters.rasterize` function works with all of these various parameters will be made clear in the next examples.
+
+The spatial resolution (area of each "pixel") of the "template" raster has a major impact on the results: if it is too low (cell size is too large), the result may miss the full geographic variability of the vector data; if it is too high, computational times may be excessive.
+There are no simple rules to follow when deciding an appropriate geographic resolution, which is heavily dependent on the intended use of the results.
+Often the target resolution is imposed on the user, for example when the output of rasterization needs to be aligned to an existing raster.
+
+Depending on the input data, rasterization typically takes one of two forms which we demonstrate next:
+
+-   in *point* rasterization (@sec-rasterizing-points), we typically choose how to treat multiple points: either to summarize presence/absence, point count, or summed attribute values (@fig-rasterize-points)
+-   in *line* and *polygon* rasterization (@sec-rasterizing-lines-and-polygons), there are typically no such "overlaps" and we simply "burn" attribute values, or fixed values, into pixels coinciding with the given geometries (@fig-rasterize-lines-polygons)
+
+
+### Rasterizing points {#sec-rasterizing-points}
+
+To demonstrate point rasterization, we will prepare a "template" raster that has the same extent and CRS as the input vector data `cycle_hire_osm_projected` (a dataset on cycle hire points in London, illustrated in @fig-rasterize-points (a)) and a spatial resolution of 1000 $m$.
+To do that, we first take our point layer and transform it to a projected CRS.
+
+```{julia}
+cycle_hire_osm_projected = GO.reproject(cycle_hire_osm; target_crs = GFT.EPSG(27700))
+```
+
+We can then use the `Rasters.rasterize` function to rasterize the points.
+
+::: {.callout-danger}
+This isn't a great way to get an extent, but needs must.  Currently we get the extent of `cycle_hire_osm_projected` by `GI.extent(GI.LineString(cycle_hire_osm_projected.geom))`. 
+
+Track https://github.com/geocompx/geocompjl/issues/5 to see
+if there's a better way to get an extent from a vector of geometries.
+:::
+
+
+As mentioned above, point rasterization can be a very flexible operation: the results depend not only on the nature of the template raster, but also on the the pixel "activation" method, namely the way we deal with multiple points matching the same pixel.
+
+To illustrate this flexibility, we will try three different approaches to point rasterization (@fig-rasterize-points (b)-(d)).
+First, we create a raster representing the presence or absence of cycle hire points (known as presence/absence rasters).
+In this case, we transfer the value of `1` to all pixels where at least one point falls in.
+In the **Rasters.jl** framework, we use the `Rasters.rasterize` function, as described above.   In this first example, we want to write the value `1` where the points are present, and `0` otherwise.
+ 
+```{julia}
+ch_raster1 = Rasters.rasterize(
+    last,                     # reducer
+    cycle_hire_osm_projected; # data
+    fill = 1, 
+    size = (1000, 1000) # specify size in "pixels"
+)
+```
+
+In our second variant of point rasterization, we count the number of bike hire stations. 
+To do that, we use the fixed value of `1` (same as in the last example), but this time combined with the `reducer=sum` argument. 
+That way, multiple values burned into the same pixel are *summed*, rather than replaced keeping last (which is the default).
+The new output, `ch_raster2`, shows the number of cycle hire points in each grid cell.
+
+```{julia}
+ch_raster2 = Rasters.rasterize(
+    sum,                     # reducer
+    cycle_hire_osm_projected; # data
+    fill = 1, 
+    size = (1000, 1000) # specify size in "pixels"
+)
+```
+
+
+The cycle hire locations have different numbers of bicycles described by the capacity variable, raising the question, what is the capacity in each grid cell?
+To calculate that, in our third point rasterization variant we sum the field (`'capacity'`) rather than the fixed values of `1`.
+
+This is extremely simple to run, but we will show how to do this two ways: first, by passing the column name in the feature collection to `fill`.
+
+```{julia}
+ch_raster3 = Rasters.rasterize(
+    sum,                     # reducer
+    cycle_hire_osm_projected; # data
+    fill = :capacity, 
+    size = (1000, 1000) # specify size in "pixels"
+)
+```
+
+Second, by passing the vectors of geometries and values separately.
+```{julia}
+ch_raster3 = Rasters.rasterize(
+    sum,                     # reducer
+    cycle_hire_osm_projected.geom; # data
+    fill = cycle_hire_osm_projected.capacity, 
+    crs = GI.crs(cycle_hire_osm_projected),
+    size = (1000, 1000) # specify size in "pixels"
+)
+```
+The input point layer `cycle_hire_osm_projected` and the three variants of rasterizing it `ch_raster1`, `ch_raster2`, and `ch_raster3` are shown in @fig-rasterize-points.
+
+```{julia}
+#| label: fig-rasterize-points
+#| fig-cap: Original data and three variants of point rasterization
+#| layout-ncol: 2
+#| fig-subcap: 
+#| - Input points
+#| - Presence/Absence
+#| - Point counts
+#| - Summed attribute values
+# Input points
+nonmissing_df = dropmissing(cycle_hire_osm_projected, [:capacity, :geom])
+f, a, p = scatter(nonmissing_df.geom; color = nonmissing_df.capacity)
+Colorbar(f[1, 2], p)
+display(f)
+# Presence/Absence
+plot(ch_raster1) |> display
+# Point counts
+plot(ch_raster2) |> display
+# Summed attribute values
+plot(ch_raster3) 
+```
+
+### Rasterizing lines and polygons {#sec-rasterizing-lines-and-polygons}
+
+Another dataset based on California's polygons and borders (created below) illustrates rasterization of lines.
+There are three preliminary steps.
+First, we subset the California polygon.
+
+```{julia}
+california = us_states[ us_states[!, "NAME"] .== "California", :]
+```
+
+Second, we obtain the borders of the polygon as a `'MultiLineString'
+
+```{julia}
+california_geom = only(california.geom)
+california_borders = GI.MultiLineString(GI.LineString.(GI.getexterior.(GI.getgeom(california_geom))); crs = GI.crs(california_geom)) # TODO: make this a lot better....
+```
+
+Finally, we rasterize `california_borders` on a grid with resolution of 0.5 degrees per pixel.
+
+```{julia}
+california_raster1 = Rasters.rasterize(
+    last,
+    california_borders;
+    fill = 1,
+    res = 0.5, # degrees - this is in units of GI.crs(california_borders)
+    boundary = :touches,
+)
+```
+
+Compare it to a polygon rasterization, with `all_touched=False` (the default), which selects only raster cells whose centroids are inside the selector polygon, as illustrated in @fig-rasterize-lines-polygons (right).
+
+```{julia}
+california_raster2 = Rasters.rasterize(
+    last, 
+    california;
+    geometrycolumn = :geom,
+    fill = 1,
+    res = 0.5,
+    boundary = :center,
+)
+```
+
+
+To illustrate which raster pixels are actually selected as part of rasterization, we also show them as points.
+This also requires the following code section to calculate the points, which we explain in @sec-spatial-vectorization.
+
+::: {.panel-tabset}
+
+## DimPoints
+```{julia}
+dp = DimPoints(california_raster1)
+```
+
+## Constructing from lookups
+
+DimensionalData.jl (which underpins Rasters.jl) provides easy ways to get "lookups", i.e, axis index values, from a raster.  
+
+Note that these lookups may encode intervals, points, or anything in between - so you should use shiftlocus or set to get the actual point values!  DimPoints does this for you.  
+
+But if you want to see how this can be done automatically, here you go.
+
+```{julia}
+[(x, y) for x in dims(california_raster1, X), y in dims(california_raster1, Y)]
+```
+
+You can see that this encodes the same values as `dp` in the other tab.
+
+TODO: firm up the description here and add links.
+:::
+
+@fig-rasterize-lines-polygons shows the input vector layer, the rasterization results, and the points `pnt`.
+
+```{julia}
+#| label: fig-rasterize-lines-polygons
+#| fig-cap: Examples of line and polygon rasterization 
+#| layout-ncol: 2
+#| fig-subcap: 
+#| - Line rasterization w/ `boundary=:touches`
+#| - Polygon rasterization w/ `boundary=:center`
+# Line rasterization
+fig, ax, plt = plot(california_raster1; colormap = cgrad(:Set3; categorical = true))
+lines!(ax, california_borders; color = :darkgrey, linewidth = 1)
+scatter!(ax, vec(dp); markersize = 3, color = :black)
+display(fig)
+# Polygon rasterization
+fig, ax, plt = plot(california_raster2; colormap = cgrad(:Set3; categorical = true))
+lines!(ax, california_borders; color = :darkgrey, linewidth = 1)
+scatter!(ax, vec(dp); markersize = 3, color = :black)
+fig 
+```
+
+## Spatial vectorization {#sec-spatial-vectorization}
+
+Spatial vectorization is the counterpart of rasterization (@sec-rasterization).
+It involves converting spatially continuous raster data into spatially discrete vector data such as points, lines or polygons.
+There are three standard methods to convert a raster to a vector layer, which we cover next:
+
+-   Raster to polygons (@sec-raster-to-polygons)---converting raster cells to rectangular polygons, representing pixel areas
+-   Raster to points (@sec-raster-to-points)---converting raster cells to points, representing pixel centroids
+-   Raster to contours (@sec-raster-to-contours)
+
+Let us demonstrate all three in the given order.
+
+### Raster to polygons {#sec-raster-to-polygons}
+
+Rasters.jl does not currently have a function to convert a raster to a feature collection with one polygon per pixel or cell.  This is a similar situation in Python with `rasterio`.
+
+GeometryOps.jl offers a `polygonize` function that returns a feature collection of polygons, where each feature has a `value` property that encodes the value of all pixels within that polygon.  Each polygon contains pixels with the same value.
+
+```{julia}
+fc = GO.polygonize(src_grain)
+```
+
+We can convert this "feature collection" to a `DataFrame` as follows.  That makes it a lot easier to work with.
+
+```{julia}
+df = DataFrame([GI.properties(f) for f in GI.getfeature(fc)])
+df.geometry = [GI.geometry(f) for f in GI.getfeature(fc)]
+df
+```
+
+The polygon layer `df` is shown in @fig-raster-to-polygons.
+
+```{julia}
+#| label: fig-raster-to-polygons
+#| fig-cap: '`grain.tif` converted to a polygon layer'
+f, a, p = poly(df.geometry; color = df.value, strokecolor = :black, strokewidth = 0.75)
+Colorbar(f[1, 2], p)
+f
+```
+
+
+As highlighted using `edgecolor='black'`, neighboring pixels sharing the same raster value are dissolved into larger polygons.
+
+One [suggestion](https://gis.stackexchange.com/questions/455980/vectorizing-all-pixels-as-separate-polygons-using-rasterio#answer-456251) is to add unique values between `0` and `0.9999` to all pixels, convert to polygons, and then get back to the original values using `floor`.
+
+### Raster to points {#sec-raster-to-points}
+
+To transform a raster to points, Rasters.jl provides the `Rasters.DimTable` constructor, which converts a raster into a lazy, table-like form.  This can be converted directly to a `DataFrame`, or operated on independently.
+
+```{julia}
+dt = DimTable(Raster("output/elev.tif"))
+```
+
+Notice that this has three columns, `:X`, `:Y`, and `:layer1`, corresponding to the pixel centroids and elevation values.  But what if we want to treat the X and Y dimensionas as point geometries?
+
+`DimTable` has a `mergedims` keyword argument for this, which allows us to merge the X and Y dimensions into a single dimension.
+
+```{julia}
+dt = DimTable(Raster("output/elev.tif"), mergedims = (X, Y))
+```
+
+This has created a `DimTable` with a column `:XY`, which contains the pixel centroids as point-like objects.  We can convert this to a `DataFrame`, set some metadata to indicate that geometry is in `:XY`, and plot the result.
+
+```{julia}
+df = DataFrame(dt)
+DataFrames.metadata!(df, "GEOINTERFACE:geometrycolumns", (:XY,); style = :note)
+df
+```
+
+```{julia}
+scatter(df.XY; color = df.layer1)
+```
+
+We can even save this to a file trivially easily:
+
+```{julia}
+GeoDataFrames.write("output/elev.gpkg", df)
+GeoDataFrames.read("output/elev.gpkg")
+```
+
+
+@fig-raster-to-points shows the input raster and the resulting point layer.
+
+```{julia}
+#| label: fig-raster-to-points
+#| fig-cap: Raster and point representation of `elev.tif`
+#| layout-ncol: 2
+#| fig-subcap: 
+#| - Input raster
+#| - Points
+# Input raster
+fig, ax, plt = plot(src_elev)
+scatter!(ax, df.XY; color = df.layer1)
+display(fig)
+# Points
+fig, ax, plt = plot(src_elev; alpha = 0.1)
+scatter!(ax, df.XY; color = df.layer1, strokecolor = :black, strokewidth = 1)
+fig
+```
+
+TODO: nodata pixels
+
+### Raster to contours {#sec-raster-to-contours}
+
+Another common type of spatial vectorization is the creation of contour lines, representing lines of continuous height or temperatures (*isotherms*), for example.
+We will use a real-world digital elevation model (DEM) because the artificial raster `elev.tif` produces parallel lines (task for the reader: verify this and explain why this happens).
+*Plotting* contour lines is straightforward, using the `contour` or `contourf` functions in **Makie**.
+
+```{julia}
+f, ax, plt = contour(src_dem; levels = LinRange(0, 1200, 50), color = :black)
+```
+
+TODO: gdal_contour (via ArchGDAL??)
+
+It would be good to show how to use the provided GDAL executables though...
+
+
+## Distance to nearest geometry {#sec-distance-to-nearest-geometry}
+
+Calculating a raster of distances to the nearest geometry is an example of a "global" raster operation (@sec-global-operations-and-distances).
+To demonstrate it, suppose that we need to calculate a raster representing the distance to the nearest coast in New Zealand.
+This example also wraps many of the concepts introduced in this chapter and in previous chapters, such as raster aggregation (@sec-raster-agg-disagg), raster conversion to points (@sec-raster-to-points), and rasterizing points (@sec-rasterizing-points).
+
+For the coastline, we will dissolve the New Zealand administrative division polygon layer and "extract" the boundary as a `'MultiLineString'` geometry.
+
+```{julia}
+using LibGEOS
+coastline_linestrings = GI.getexterior.(GI.getgeom(LibGEOS.unaryUnion(GI.GeometryCollection(nz.geom)))) .|> x -> GI.LineString(collect(GI.getpoint(x)))
+coastline = GI.MultiLineString(coastline_linestrings)
+coastline = GO.reproject(coastline; target_crs = GI.crs(src_nz_elev), source_crs = GI.crs(nz))
+```
+
+For a "template" raster, we will aggregate the New Zealand DEM, in the `nz_elev.tif` file, to 5 times coarser resolution.
+The code section below follows the aggeregation example in @sec-raster-agg-disagg.
+
+```{julia}
+factor = 2/10
+r = Rasters.resample(src_nz_elev; size = round.(Int, size(src_nz_elev) .* factor), method = :average)
+```
+
+The resulting raster `r` and the lines layer `coastline` are plotted in @fig-raster-distances1.
+Note that the raster values are average elevations based on $5 \times 5$ pixels, but this is irrelevant for the subsequent calculation; the raster is going to be used as a template, and all of its values will be replaced with distances to coastline (@fig-raster-distances2).
+
+
+```{julia}
+#| label: fig-raster-distances1
+#| fig-cap: Template to calculate distance to nearest geometry (coastlines, in red)
+fig, ax, plt = plot(r)
+lines!(ax, coastline; color = :red)
+fig
+```
+
+To calculate the actual distances, we must convert each pixel to a vector (point) geometry.
+For this purpose, we use the technique demonstrated in @sec-raster-to-points, but simply select the pixels that are not `missing`.
+
+```{julia}
+dp = DimPoints(r)
+nonmissing_points = dp[r .=== missingval(r)]
+```
+
+The result is a vector of 2-tuples, which are recognized as GeoInterface point geometries.
+
+We can compute the Cartesian distance from each point to the nearest line in the `coastline` multilinestring using the `distance` method from **GeometryOps**.
+
+```{julia}
+distances = GO.distance.((coastline,), nonmissing_points)
+```
+
+Finally, we rasterize (see @sec-rasterizing-points) the distances into our raster template.     
+
+```{julia}
+img = Rasters.rasterize(
+    last,
+    nonmissing_points;
+    to = r,
+    fill = distances,
+)
+```
+
+The final result, a raster of distances to the nearest coastline, is shown in @fig-raster-distances2.
+
+```{julia}
+#| label: fig-raster-distances2
+#| fig-cap: Distance to nearest coastline in New Zealand
+fig, ax, plt = plot(img)
+lines!(ax, coastline; color = :red)
+Colorbar(fig[1, 2], plt; label = "Distance to coastline (m)")
+fig
+```
+
+<!-- ## Exercises -->
+

@@ -3,6 +3,7 @@ on:
   push:
     branches:
       [main]
+  pull_request:
 name: Quarto Publish
 jobs:
   bookdown:
@@ -14,10 +15,28 @@ jobs:
       - uses: actions/checkout@v3
       - uses: julia-actions/setup-julia@v2
       - uses: julia-actions/cache@v2
+      - name: Set up custom Julia dependencies
+        run: |
+          using Pkg
+          Pkg.activate("quarto"; shared = true)
+          # TODO: QuartoNotebookRunner does not support execute-dir yet, but this PR does.
+          Pkg.add(url = "https://github.com/asinghvi17/QuartoNotebookRunner.jl", rev = "as/execute-dir")
+          Pkg.instantiate()
+          Pkg.activate(".")
+          Pkg.add([
+            # TODO: DimensionalData v0.28 is not compatible with Rasters latest version,
+            # and has Makie fixes that we need for the book, otherwise plotting errors out.
+            # These can be removed after Rasters.jl's new breaking version.
+            PackageSpec(url = "https://github.com/asinghvi17/Rasters.jl", rev = "as/makie_and_cf"),
+            PackageSpec(url = "https://github.com/rafaqz/DimensionalData.jl", rev = "main"),
+          ])
+        shell: julia {0}
       - uses: julia-actions/julia-buildpkg@v1
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
+        env:
+          QUARTO_JULIA_PROJECT: "@quarto"
 
       - name: Render and Publish
         uses: quarto-dev/quarto-actions/publish@v2
@@ -25,3 +44,5 @@ jobs:
           target: gh-pages
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          QUARTO_JULIA_PROJECT: "@quarto"
+          DATAFRAMES_ROWS: "6"

@@ -1,5 +1,7 @@
 ---
 engine: julia
+project:
+  execute-dir: project
 ---
 
 # Attribute data operations {#sec-attr}

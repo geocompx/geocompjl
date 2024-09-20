@@ -1,6 +1,7 @@
 project:
   type: book
   output-dir: docs
+  execute-dir: project
 
 book:
   title: "Geocomputation with Julia"

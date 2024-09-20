@@ -10,3 +10,5 @@ libs/
 /.quarto/
 docs
 /_site/
+output/*
+Manifest.toml

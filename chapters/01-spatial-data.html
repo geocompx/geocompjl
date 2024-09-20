@@ -330,7 +330,7 @@ window.Quarto = {
   [3251bfac] GeometryOps v0.1.12
   [a90b1aa1] LibGEOS v0.9.2
   [c94c279d] Proj v1.7.1
-  [a3a2b9e3] Rasters v0.11.8 `https://github.com/asinghvi17/Rasters.jl#as/makie_and_cf`
+  [a3a2b9e3] Rasters v0.11.7 `https://github.com/asinghvi17/Rasters.jl#as/dd28`
   [2913bbd2] StatsBase v0.34.3
   [10745b16] Statistics v1.10.0</code></pre>
 </div>
@@ -501,6 +501,10 @@ window.Quarto = {
 <div id="10" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Rasters</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> <span class="bu">GeoFormatTypes</span> as GFT</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>WARNING: Method definition convert_arguments(MakieCore.CellGrid, Rasters.AbstractRaster{var"#s115", 2, D, A} where A where D where var"#s115") in module RastersMakieExt at /home/runner/.julia/packages/Rasters/JcYNY/ext/RastersMakieExt/plotrecipes.jl:304 overwritten at /home/runner/.julia/packages/Rasters/JcYNY/ext/RastersMakieExt/plotrecipes.jl:308.
+ERROR: Method overwriting is not permitted during Module precompilation. Use `__precompile__(false)` to opt-out of precompilation.</code></pre>
+</div>
 </div>
 <p>Conceptually, a raster is an array combined with georeferencing information, whereas the latter comprises:</p>
 <ul>
@@ -509,7 +513,7 @@ window.Quarto = {
 </ul>
 <p>Therefore, to create a raster, we first need to have an array with the values, and then supplement it with the georeferencing information. Let’s create the arrays <code>elev</code> and <code>grain</code>. The <code>elev</code> array is a <span class="math inline">\(6 \times 6\)</span> array with sequential values from <code>1</code> to <code>36</code>. It can be created as follows using base Julia functions.</p>
 <div id="12" class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>elev <span class="op">=</span> <span class="fu">reshape</span>(<span class="fu">UInt8</span>(<span class="fl">1</span>)<span class="op">:</span><span class="fu">UInt8</span>(<span class="fl">36</span>), (<span class="fl">6</span>, <span class="fl">6</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>elev <span class="op">=</span> <span class="fu">reshape</span>(<span class="fu">UInt8</span>(<span class="fl">1</span>)<span class="op">:</span><span class="fu">UInt8</span>(<span class="fl">36</span>), (<span class="fl">6</span>, <span class="fl">6</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="1">
 <pre><code>6×6 reshape(::UnitRange{UInt8}, 6, 6) with eltype UInt8:
  0x01  0x07  0x0d  0x13  0x19  0x1f
@@ -522,15 +526,15 @@ window.Quarto = {
 </div>
 <p>The <code>grain</code> array represents a categorical raster with values <code>0</code>, <code>1</code>, <code>2</code>, corresponding to categories “clay”, “silt”, “sand”, respectively. We will create it from a specific arrangement of pixel values, using <code>reshape</code>.</p>
 <div id="14" class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>v <span class="op">=</span> <span class="dt">UInt8</span>[</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">2</span>, </span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">1</span>, </span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">2</span>, </span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span>, </span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">1</span>, <span class="fl">1</span>, </span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="fl">2</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">0</span>, <span class="fl">2</span></span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>]</span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>grain <span class="op">=</span> <span class="fu">reshape</span>(v, (<span class="fl">6</span>, <span class="fl">6</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>v <span class="op">=</span> <span class="dt">UInt8</span>[</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">2</span>, </span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">1</span>, </span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fl">0</span>, <span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">2</span>, </span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fl">0</span>, <span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span>, </span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">1</span>, <span class="fl">1</span>, </span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="fl">2</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">0</span>, <span class="fl">2</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>grain <span class="op">=</span> <span class="fu">reshape</span>(v, (<span class="fl">6</span>, <span class="fl">6</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="1">
 <pre><code>6×6 Matrix{UInt8}:
  0x01  0x00  0x00  0x00  0x01  0x02
@@ -549,8 +553,8 @@ window.Quarto = {
 </ul>
 <p>We can add this information using <code>rasterio.transform.from_origin</code>, and specifying <code>west</code>, <code>north</code>, <code>xsize</code>, and <code>ysize</code> parameters. The resulting transformation matrix object is hereby named <code>new_transform</code>.</p>
 <div id="16" class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>new_x <span class="op">=</span> <span class="fu">X</span>(<span class="fu">range</span>(<span class="op">-</span><span class="fl">1.5</span>, step<span class="op">=</span><span class="fl">0.5</span>, length<span class="op">=</span><span class="fl">6</span>))</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>new_y <span class="op">=</span> <span class="fu">Y</span>(<span class="fu">range</span>(<span class="fl">1.0</span>, step<span class="op">=-</span><span class="fl">0.5</span>, length<span class="op">=</span><span class="fl">6</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>new_x <span class="op">=</span> <span class="fu">X</span>(<span class="fu">range</span>(<span class="op">-</span><span class="fl">1.5</span>, step<span class="op">=</span><span class="fl">0.5</span>, length<span class="op">=</span><span class="fl">6</span>))</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>new_y <span class="op">=</span> <span class="fu">Y</span>(<span class="fu">range</span>(<span class="fl">1.0</span>, step<span class="op">=-</span><span class="fl">0.5</span>, length<span class="op">=</span><span class="fl">6</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="1">
 <pre><code>Y 1.0:-0.5:-1.5</code></pre>
 </div>
@@ -559,7 +563,7 @@ window.Quarto = {
 We assign to it a CRS of <code>EPSG:4326</code> (which encodes that the coordinate system is longitude/latitude on the “standard” WGS84 definition of the Earth’s curvature).</p>
 <p>Here, we use the <code>GFT.EPSG(code)</code> constructor to create an object that encodes a reference code under the <a href="https://epsg.org">European Petroleum Survey Group</a> (EPSG) authority’s database of coordinate reference systems.</p>
 <div id="18" class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>elev_raster <span class="op">=</span> <span class="fu">Raster</span>(elev, (new_x, new_y); crs <span class="op">=</span> GFT.<span class="fu">EPSG</span>(<span class="fl">4326</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>elev_raster <span class="op">=</span> <span class="fu">Raster</span>(elev, (new_x, new_y); crs <span class="op">=</span> GFT.<span class="fu">EPSG</span>(<span class="fl">4326</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="1">
 <pre><code>╭─────────────────────╮
 │ 6×6 Raster{UInt8,2} │
@@ -568,6 +572,7 @@ We assign to it a CRS of <code>EPSG:4326</code> (which encodes that the coordina
   → Y Projected{Float64} 1.0:-0.5:-1.5 ReverseOrdered Regular Points
 ├──────────────────────────────────────────────────────────── raster ┤
   extent: Extent(X = (-1.5, 1.0), Y = (-1.5, 1.0))
+
   crs: EPSG:4326
 └────────────────────────────────────────────────────────────────────┘
   ↓ →     1.0     0.5     0.0    -0.5    -1.0    -1.5
@@ -581,7 +586,7 @@ We assign to it a CRS of <code>EPSG:4326</code> (which encodes that the coordina
 </div>
 <p>The raster can now be plotted in its coordinate system, passing the array <code>elev</code> along with the transformation matrix <code>new_transform</code> to <code>rasterio.plot.show</code> (<a href="#fig-rasterio-plot-elev" class="quarto-xref">Figure&nbsp;<span>2.1</span></a>).</p>
 <div id="cell-fig-rasterio-plot-elev" class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(elev_raster)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(elev_raster)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="1">
 <div id="fig-rasterio-plot-elev" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -597,7 +602,7 @@ Figure&nbsp;2.1: Plot of the <code>elev</code> raster, a minimal example of a co
 </div>
 <p>The <code>grain</code> raster can be plotted the same way, as we are going to use the same transformation matrix for it as well (<a href="#fig-rasterio-plot-grain" class="quarto-xref">Figure&nbsp;<span>2.2</span></a>).</p>
 <div id="cell-fig-rasterio-plot-grain" class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">Raster</span>(grain, (new_x, new_y); crs <span class="op">=</span> GFT.<span class="fu">EPSG</span>(<span class="fl">4326</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">Raster</span>(grain, (new_x, new_y); crs <span class="op">=</span> GFT.<span class="fu">EPSG</span>(<span class="fl">4326</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="1">
 <div id="fig-rasterio-plot-grain" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -623,7 +628,7 @@ Figure&nbsp;2.2: Plot of the <code>grain</code> raster, a minimal example of a c
 </ol>
 <p>Don’t worry if the code below is unclear; the concepts related to writing raster data to file will be explained in <span class="quarto-unresolved-ref">?sec-data-output-raster</span>. For now, for completeness, and also to use these rasters in subsequent chapters without having to re-create them from scratch, we just provide the code for exporting the <code>elev</code> and <code>grain</code> rasters into the <code>output</code> directory. In the case of <code>elev</code>, we do it as follows with the <code>Rasters.write</code> functions and methods of the <strong>Rasters.jl</strong> package.</p>
 <div id="24" class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write</span>(<span class="st">"output/elev.tif"</span>, elev_raster; force <span class="op">=</span> <span class="cn">true</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write</span>(<span class="st">"output/elev.tif"</span>, elev_raster; force <span class="op">=</span> <span class="cn">true</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="1">
 <pre><code>"output/elev.tif"</code></pre>
 </div>
@@ -631,7 +636,7 @@ Figure&nbsp;2.2: Plot of the <code>grain</code> raster, a minimal example of a c
 <p>Note that the CRS we (arbitrarily) set for the <code>elev</code> raster is WGS84, defined using <code>crs=4326</code> according to the EPSG code.</p>
 <p>Exporting the <code>grain</code> raster is done in the same way, with the only differences being the file name and the array we write into the connection.</p>
 <div id="26" class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write</span>(<span class="st">"output/grain.tif"</span>, <span class="fu">Raster</span>(grain, (new_x, new_y); crs <span class="op">=</span> GFT.<span class="fu">EPSG</span>(<span class="fl">4326</span>)); force <span class="op">=</span> <span class="cn">true</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write</span>(<span class="st">"output/grain.tif"</span>, <span class="fu">Raster</span>(grain, (new_x, new_y); crs <span class="op">=</span> GFT.<span class="fu">EPSG</span>(<span class="fl">4326</span>)); force <span class="op">=</span> <span class="cn">true</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="1">
 <pre><code>"output/grain.tif"</code></pre>
 </div>

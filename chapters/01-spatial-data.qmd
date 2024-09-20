@@ -18,6 +18,63 @@ mkpath("output")
 
 
 ## Introduction
+
+This chapter outlines two fundamental geographic data models --- vector and raster --- and introduces the main Python packages for working with them.
+Before demonstrating their implementation in Python, we will introduce the theory behind each data model and the disciplines in which they predominate.
+
+The vector data model (@sec-vector-data) represents the world using points, lines, and polygons.
+These have discrete, well-defined borders, meaning that vector datasets usually have a high level of precision (but not necessarily accuracy).
+The raster data model (@sec-raster-data), on the other hand, divides the surface up into cells of constant size.
+Raster datasets are the basis of background images used in web-mapping and have been a vital source of geographic data since the origins of aerial photography and satellite-based remote sensing devices.
+Rasters aggregate spatially specific features to a given resolution, meaning that they are consistent over space and scalable, with many worldwide raster datasets available.
+
+Which to use?
+The answer likely depends on your domain of application, and the datasets you have access to:
+
+-   Vector datasets and methods dominate the social sciences because human settlements and and processes (e.g., transport infrastructure) tend to have discrete borders.
+-   Raster datasets and methods dominate many environmental sciences because of the reliance on remote sensing data.
+
+Julia has strong support for both data models.
+We will focus on [**GeoDataFrames.jl**](https://github.com/evetion/GeoDataFrames.jl) and the [**GeoInterface.jl**](https://github.com/JuliaGeo/GeoInterface.jl) ecosystem for working with vector data, including the packages [**GeometryOps.jl**](https://github.com/JuliaGeo/GeometryOps.jl) and [**LibGEOS.jl**](https://github.com/JuliaGeo/LibGEOS.jl).
+We will focus on the [**Rasters.jl**](https://github.com/rafaqz/Rasters.jl) package for working with rasters.
+
+TODO: alternatives, geostats, etc.
+
+There is much overlap in some fields and raster and vector datasets can be used together: ecologists and demographers, for example, commonly use both vector and raster data.
+Furthermore, it is possible to convert between the two forms (see @sec-raster-vector).
+Whether your work involves more use of vector or raster datasets, it is worth understanding the underlying data models before using them, as discussed in subsequent chapters.
+
+
+## Vector data {#sec-vector-data}
+
+The geographic vector data model is based on points located within a coordinate reference system (CRS).
+Points can represent self-standing features (e.g., the location of a bus stop), or they can be linked together to form more complex geometries such as lines and polygons.
+Most point geometries contain only two dimensions (3-dimensional CRSs may contain an additional $z$ value, typically representing height above sea level).
+
+In this system, London, for example, can be represented by the coordinates `(-0.1,51.5)`.
+This means that its location is -0.1 degrees east and 51.5 degrees north of the origin.
+The origin, in this case, is at 0 degrees longitude (a prime meridian located at Greenwich) and 0 degrees latitude (the Equator) in a geographic ('lon/lat') CRS (@fig-vector-london, left panel).
+The same point could also be approximated in a projected CRS with 'Easting/Northing' values of `(530000,180000)` in the British National Grid, meaning that London is located 530 $km$ East and 180 $km$ North of the origin of the CRS (@fig-vector-london, right panel).
+The location of National Grid's origin, in the sea beyond South West Peninsular, ensures that most locations in the UK have positive Easting and Northing values.
+
+::: {#fig-vector-london layout-ncol=2}
+
+![](images/vector_lonlat.png)
+
+![](images/vector_projected.png)
+
+Illustration of vector (point) data in which location of London (the red X) is represented with reference to an origin (the blue circle). 
+The left plot represents a geographic CRS with an origin at 0° longitude and latitude. 
+The right plot represents a projected CRS with an origin located in the sea west of the South West Peninsula.
+:::
+
+There is more to CRSs, as described in @sec-coordinate-reference-systems-intro and @sec-reproj-geo-data but, for the purposes of this section, it is sufficient to know that coordinates consist of two numbers representing the distance from an origin, usually in $x$ and $y$ dimensions.
+
+TODO: explain the JuliaGeo ecosystem like they explain geopandas
+E.g GeoInterface defines how to access any geometry, then LibGEOS (wrapping GEOS), GeometryOps, Proj, etc consume such geometries.
+
+### Vector data classes
+
 ```{julia}
 using GeoDataFrames
 df = GeoDataFrames.read("data/world.gpkg")

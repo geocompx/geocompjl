@@ -78,11 +78,59 @@ The CRS defines how the coordinates of the geometry relate to locations on the s
 zion = GO.reproject(zion; target_crs = GI.crs(src_srtm))
 ```
 
-To mask the image, i.e., convert all pixels which do not intersect with the `zion` polygon to `missing`, we use the `Rasters.mask` function.  `mask` supports any geometry, vector of geometries, feature collection, or table with a geometry column!
+To mask the image, i.e., convert all pixels which do not intersect with the `zion` polygon to `missing`, we use the `Rasters.mask` function.  
+`mask` supports any geometry, vector of geometries, feature collection, or table with a geometry column!
 
+The tabset below shows all the different ways to mask a raster.  We'll go forward with the approach of using a DataFrame.
+
+:::{.panel-tabset}
+## DataFrame
 ```{julia}
 out_image_mask = Rasters.mask(src_srtm; with = zion)
 ```
+
+## Single geometry
+
+```{julia}
+masker = zion.geom[1]
+```
+
+```{julia}
+Rasters.mask(src_srtm; with = masker)
+```
+
+## Vector of geometries
+
+```{julia}
+masker = zion.geom
+```
+
+```{julia}
+Rasters.mask(src_srtm; with = masker)
+```
+
+<!-- TODO: make this work with Rasters.jl - track issue https://github.com/rafaqz/Rasters.jl/issues/755
+## Extent taken from geometry
+
+```{julia}
+masker = GI.extent(zion.geom[1])
+```
+
+```{julia}
+Rasters.mask(src_srtm; with = masker)
+```
+
+## Manual extent
+
+```{julia}
+# masker = GI.Extents.Extent(X = (), Y = ())
+```
+
+```{julia}
+# Rasters.mask(src_srtm; with = masker)
+```
+-->
+:::
 
 ::: {.callout-note}
 Note that since Julia has a native missing/NODATA value type, we don't need to specify a NODATA value for the `mask` function.

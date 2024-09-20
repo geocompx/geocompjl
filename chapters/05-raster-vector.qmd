@@ -19,6 +19,10 @@ import GeoFormatTypes as GFT # for CRS types
 using GeoMakie, CairoMakie # plotting
 ```
 
+Here, we will also set the theme in Makie.jl to ensure that all `surface` and `heatmap` plots are represented in file as bitmap images, rather than the raw data.  
+This is necessary only because Quarto breaks on SVGs above a certain size.  
+You can feel free to set this for your own work, but it is not required.
+
 ```{julia}
 Makie.set_theme!(
     Heatmap = (; rasterize = 2),
@@ -48,10 +52,11 @@ This chapter focuses on interactions between raster and vector geographic data m
 It includes four main techniques:
 
 -   Raster cropping and masking using vector objects (@sec-raster-cropping)
--   Extracting raster values using different types of vector data (Section @sec-raster-extraction)
--   Raster-vector conversion (@sec-rasterization and @sec-spatial-vectorization)
+-   Extracting raster values using different types of vector data (@sec-raster-extraction)
+-   Raster to vector conversion (@sec-rasterization)
+-   Vector to raster conversion (@sec-spatial-vectorization)
 
-These concepts are demonstrated using data from in previous chapters, to understand their potential real-world applications.
+These concepts are demonstrated using data from previous chapters, to understand their potential real-world applications.
 
 ## Raster masking and cropping {#sec-raster-cropping}
 
@@ -63,10 +68,11 @@ Both operations reduce object memory use and associated computational resources 
 We will use two layers to illustrate raster cropping:
 
 -   The `srtm.tif` raster representing elevation, in meters above sea level, in south-western Utah: a **Rasters.jl** file connection named `src_srtm` (see @fig-raster-crop (a))
--   The `zion.gpkg` vector layer representing the Zion National Park boundaries (a `GeoDataFrame` named `zion`)
+-   The `zion.gpkg` vector layer representing the Zion National Park boundaries (a `DataFrame` named `zion`)
 
 Both target and cropping objects must have the same projection.
-Since it is easier and more precise to reproject vector layers, compared to rasters, we use the following expression to reproject (@sec-reprojecting-vector-geometries) the vector layer `zion` into the CRS of the raster `src_srtm`.
+Since it is easier and more precise to reproject vector layers, compared to rasters, we use the following expression to reproject (@sec-reprojecting-vector-geometries) the vector layer `zion` into the [coordinate reference system](https://en.wikipedia.org/wiki/Spatial_reference_system) (CRS) of the raster `src_srtm`.
+The CRS defines how the coordinates of the geometry relate to locations on the surface of the Earth.
 
 ```{julia}
 zion = GO.reproject(zion; target_crs = GI.crs(src_srtm))
@@ -113,7 +119,7 @@ We can crop our masked raster as well:
 out_image_mask_crop = Rasters.crop(out_image_mask; to = zion, touches = true)
 ```
 
-and we write it to file as usual:
+and we write it to file using `Rasters.write`:
 
 ```{julia}
 Rasters.write("output/srtm_masked_cropped.tif", out_image_mask_crop; force = true)
@@ -142,7 +148,7 @@ ax4 = Axis(fig[2, 2]; title = "Masked+Cropped")
 plot!(ax4, out_image_mask_crop)
 poly!(ax4, zion.geom; color = :transparent, strokecolor = :black, strokewidth = 0.75)
 
-fig
+display(fig)
 ```
 
 
@@ -168,7 +174,7 @@ To demonstrate extraction to points, we will use `zion_points`, which contains a
 #| fig-cap: 30 point locations within the Zion National Park, with elevation in the background
 fig, ax, plt = plot(src_srtm)
 scatter!(ax, zion_points.geom, color=:black, strokecolor=:white, strokewidth = 1);
-fig
+display(fig)
 ```
 
 
@@ -182,7 +188,7 @@ One thought is to use a Tables.jl materializer to convert the result if possible
 :::
 
 ```{julia}
-result1 = Rasters.extract(src_srtm, zion_points; geometry = false) .|> first
+result1 = DataFrame(Rasters.extract(src_srtm, zion_points; geometry = false))
 ```
 
 The first argument is the raster from which to extract values, and the second is the vector object (or collection of objects) according to which to extract the values. 
@@ -190,7 +196,7 @@ The first argument is the raster from which to extract values, and the second is
 
 
 ::: {.callout-note}
-**Rasters.jl** does not yet support interpolation, so the values extracted are the values of the nearest cell center.  
+**Rasters.jl** does not yet support interpolation in extraction, so the values extracted are the values of the nearest cell center.  
 This corresponds to `interpolate='nearest'` in the Python `rasterstats` package.
 :::
 
@@ -199,13 +205,13 @@ Either way, the resulting object is a vector of raster values, corresponding to 
 For example, here are the elevations of the first five points.
 
 ```{julia}
-result1[1:5]
+result1[1:5, ""]
 ```
 
-To get a `GeoDataFrame` with the original points geometries (and other attributes, if any), as well as the extracted raster values, we can assign the extraction result into a new column.
+To get a `DataFrame` with the original points geometries (and other attributes, if any), as well as the extracted raster values, we can assign the extraction result into a new column.
 
 ```{julia}
-zion_points[!, "elev1"] = result1
+zion_points[!, "elev1"] = result1[!, ""]
 zion_points
 ```
 
@@ -227,7 +233,7 @@ zion_transect = GI.LineString(coords)
 ```
 
 The utility of extracting heights from a linear selector is illustrated by imagining that you are planning a hike.
-The method demonstrated below provides an 'elevation profile' of the route (the line does not need to be straight), useful for estimating how long it will take due to long climbs.
+The method demonstrated below provides an 'elevation profile' of the route (the line does not need to be straight), useful for estimating how long it will take by determining the cumulative elevation gain of your journey.
 
 First, we need to create a layer consisting of points along our line (`zion_transect`), at specified intervals (e.g., `250`).
 To do that, we need to transform the line into a projected CRS (so that we work with true distances, in $m$), such as UTM.
@@ -244,30 +250,38 @@ I've chosen to differ from the Python treatment here - instead of selecting some
 cf. https://github.com/JuliaGeo/GeometryOps.jl/issues/210
 :::
 
-Here, we interpolate points along the line using `GO.segmentize`.  
+Here, we interpolate points along the line using `GO.segmentize`.  This operation is sometimes called line densification.
 
 We first compute the length of the line, and then use this to segmentize the line into approximately 250 points.
 
 ```{julia}
 _centroid, linelen = GO.centroid_and_length(zion_transect_utm)
+```
+
+Now that we have the length of the line, we can choose a distance such that we get around 250 points along the line.
+
+```{julia}
 zion_transect_line = GO.segmentize(zion_transect_utm; max_distance = linelen / 250)
 ```
 
-This gives us a collection of 251 points along the line.  We can extract the points by using `GI.getpoint` on the line, and then reproject the points to the CRS of the raster.
+This gives us a collection of 251 points along the line.  We can extract the points that define the line segments by using `GI.getpoint` on the line, and then reproject the points to the CRS of the raster.
 
 ```{julia}
-zion_transect_pnt = GO.reproject(GI.getpoint(zion_transect_line); target_crs = GI.crs(src_srtm), source_crs = GI.crs(zion_transect_line))
+line_points = GI.getpoint(zion_transect_line)
+zion_transect_pnt = GO.reproject(line_points; target_crs = GI.crs(src_srtm), source_crs = GI.crs(zion_transect_line))
 ```
 
-
-Finally, we extract the elevation values for each point in our transect and combine the information with `zion_transect_pnt` (after "promoting" it to a `GeoDataFrame`, to accommodate extra attributes), using the point extraction method shown earlier (@sec-extraction-to-points).
-We also attach the respective distance cutoff points `distances`.
+Finally, we extract the elevation values for each point in our transect and combine the information with `zion_transect_pnt` (after "promoting" it to a `DataFrame`, to accommodate extra attributes), using the point extraction method shown earlier (@sec-extraction-to-points).
+We also attach the distance of each point along the line, to be used to plot an elevation profile.
 
 ```{julia}
 zion_transect_pnt = DataFrame(geometry = zion_transect_pnt)
 
-result = Rasters.extract(src_srtm, zion_transect_pnt; geometry = false) .|> first
-zion_transect_pnt[!, "elev"] = result
+result = Rasters.extract(src_srtm, zion_transect_pnt; geometry = false)
+# `Rasters.extract` returns a vector of tuples, so we take the first element of each tuple
+result = first.(result)
+# Add elevation data to a new data frame column, named `elevation`
+zion_transect_pnt[!, "elevation"] = result
 ```
 
 We also want to visualize an elevation profile along this line, so we compute the distances along the line manually. Using `GO.distance`, we can get the distance between successive points along the line.  Then, we add `0.0` to the beginning of the array of distances, and sum along that array to get the cumulative distance along the line.
@@ -277,7 +291,8 @@ We also want to visualize an elevation profile along this line, so we compute th
 distances_between_points = GO.distance.(zion_transect_pnt.geometry[1:end-1], zion_transect_pnt.geometry[2:end])
 # Compute cumulative distances along the line
 cumulative_distances = cumsum([0.0; distances_between_points])
-zion_transect_pnt[!, "dist"] = cumulative_distances
+# Assign the distances to a new column in the data frame
+zion_transect_pnt[!, "distance"] = cumulative_distances
 zion_transect_pnt
 ```
 
@@ -299,26 +314,22 @@ poly!(ax, zion.geom; color = :transparent, strokecolor = :white, strokewidth = 0
 display(fig)
 # Elevation profile
 fig, ax, plt = lines(
-    zion_transect_pnt.dist, 
-    zion_transect_pnt.elev;
+    zion_transect_pnt.distance, 
+    zion_transect_pnt.elevation;
     axis = (;
         xlabel = "Distance (m)",
         ylabel = "Elevation (m)",
     )
 )
-fig
+display(fig)
 ```
 
 ### Extraction to polygons {#sec-extraction-to-polygons}
 
-The final type of geographic vector object for raster extraction is polygons.
+The final type of geographic vector object that can be used for raster extraction is polygons.  
 Like lines, polygons tend to return many raster values per vector geometry.
 For continuous rasters (@fig-raster-extract-to-polygon (a)), we typically want to generate summary statistics for raster values per polygon, for example to characterize a single region or to compare many regions.
 The generation of raster summary statistics, by polygons, is demonstrated in the code below using `Rasters.zonal`, which creates a list of summary statistics (in this case a list of length 1, since there is just one polygon).
-
-::: {.callout-danger}
-Rasters.zonal does not allow passing multiple functions. Would this provide a speedup?  Do we care?
-:::
 
 ```{julia}
 using Statistics # for `mean`
@@ -328,6 +339,43 @@ rmax = Rasters.zonal(maximum, src_srtm; of = zion)
 result = (rmean, rmin, rmax)
 ```
 
+`Rasters.zonal` accepts any function that works on iterables (collections of elements that can be looped over) and returns a single value, like `mean`, `minimum`, `maximum`, `std`, `median`, `mode`, `sum`, `prod`, etc.  
+
+::: {.callout-tip collapse="true"}  
+## You can pass your own custom function too!  
+
+```{julia}
+# This is about the worst possible implementation of a mean function,
+# please don't use it in real life!
+function my_mean(iterable)
+    result = 0.0
+    count = 0
+    for value in iterable
+        result += value
+        count += 1
+    end
+    result /= count
+    return result
+end
+
+Rasters.zonal(my_mean, src_srtm; of = zion)
+```
+
+:::  
+
+::: {.callout-tip collapse="true"}
+## You can pass multiple functions to a single `Rasters.zonal` call
+
+Sometimes, in order to be most efficient with raster access, we might want to pass multiple functions to a single `Rasters.zonal` call.
+We can do this by passing a function that returns a tuple of values to `Rasters.zonal`.
+
+For example, consider:
+```{julia}
+using Statistics # for `mean`
+Rasters.zonal(x -> (mean(x), minimum(x), maximum(x)), src_srtm; of = zion)
+```
+
+:::
 
 It's straightforward to transform the result to a DataFrame as well:
 
@@ -338,8 +386,6 @@ DataFrame(mean = rmean, min = rmin, max = rmax)
 Because there is only one polygon in the example, single-element vectors are returned.
 However, if `zion` was composed of more than one polygon, we would accordingly get more elements in the returned vectors.
 The result provides useful summaries, for example that the maximum height in the park is `2661` $m$ above sea level.
-
-`Rasters.zonal` accepts any function that works on iterables and returns a single value, like `mean`, `minimum`, `maximum`, `std`, `median`, `mode`, `sum`, `prod`, etc.
 
 To count occurrences of categorical raster values within polygons (@fig-raster-extract-to-polygon (b)), we can use masking (@sec-raster-cropping) combined with `StatsBase.countmap`, as follows.
 
@@ -370,7 +416,7 @@ poly!(ax, zion.geom; source = GI.crs(zion.geom[1]), color = :transparent, stroke
 cm = Colorbar(fig[1, 2], plt)
 ax.xgridvisible = false
 ax.ygridvisible = false
-fig # TODO: make GeoMakie better on small extents
+display(fig) # TODO: make GeoMakie better on small extents
 ```
 
 <!-- jn: what is the state of plotting categorical rasters? can it read the color palette from a file? -->
@@ -393,7 +439,10 @@ As for the vector geometries and their associated values, the `Rasters.rasterize
 -    `; data::Vector{Geometry}, fill::Vector` means that the values passed to `fill` will be associated with each geometry in `data` and used to fill the raster.
 -    `; data::Any, fill::Function` calls `fill` with the current value
 
-We will use the `; data::FeatureCollection, fill::Symbol` method to rasterize the `zion` polygon we have been using in this chapter.
+Furthermore, we define how to handle multiple values burned into the same pixel, in the first argument called `reducer`.  
+By default, this is `last`, meaning that the last polygon to be rasterized takes precedence.  
+However, we can pass any function that takes in an iterable and returns a single value, like `mean`, `minimum`, `maximum`, `std`, `median`, `mode`, `sum`, `prod`, etc.  
+Many of these may not make sense to use but they are useful to know of.
 
 
 Furthermore, we define how to deal with multiple values burned into the same pixel, in the first argument called `reducer`.  By default, this is `last`, meaning that the last polygon to be rasterized takes precedence.  However, we can pass any function that takes in an iterable and returns a single value, like `mean`, `minimum`, `maximum`, `std`, `median`, `mode`, `sum`, `prod`, etc.  Many of these may not make sense to use but they are useful to know of.
@@ -624,8 +673,7 @@ GeometryOps.jl offers a `polygonize` function that returns a feature collection 
 fc = GO.polygonize(src_grain)
 ```
 
-To load this as a `DataFrame`, we can take a shortcut and read it as GeoJSON (which is convertable to a DataFrame).  
-Support for direct conversion from `GI.FeatureCollection` to a `DataFrame` is in progress.  TODO: add a link and track progress.
+We can convert this "feature collection" to a `DataFrame` as follows.  That makes it a lot easier to work with.
 
 ```{julia}
 df = DataFrame([GI.properties(f) for f in GI.getfeature(fc)])
@@ -664,7 +712,7 @@ Notice that this has three columns, `:X`, `:Y`, and `:layer1`, corresponding to 
 dt = DimTable(Raster("output/elev.tif"), mergedims = (X, Y))
 ```
 
-This has created a `DimTable` with a single dimension, `:XY`, which contains the pixel centroids as point-like objects.  We can convert this to a `DataFrame`, set some metadata to indicate that geometry is in `:XY`, and plot the result.
+This has created a `DimTable` with a column `:XY`, which contains the pixel centroids as point-like objects.  We can convert this to a `DataFrame`, set some metadata to indicate that geometry is in `:XY`, and plot the result.
 
 ```{julia}
 df = DataFrame(dt)

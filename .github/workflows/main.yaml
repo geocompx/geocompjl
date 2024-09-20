@@ -19,10 +19,14 @@ jobs:
         run: |
           using Pkg
           Pkg.activate("quarto"; shared = true)
+          # TODO: QuartoNotebookRunner does not support execute-dir yet, but this PR does.
           Pkg.add(url = "https://github.com/asinghvi17/QuartoNotebookRunner.jl", rev = "as/execute-dir")
           Pkg.instantiate()
           Pkg.activate(".")
           Pkg.add([
+            # TODO: DimensionalData v0.28 is not compatible with Rasters latest version,
+            # and has Makie fixes that we need for the book, otherwise plotting errors out.
+            # These can be removed after Rasters.jl's new breaking version.
             PackageSpec(url = "https://github.com/asinghvi17/Rasters.jl", rev = "as/makie_and_cf"),
             PackageSpec(url = "https://github.com/rafaqz/DimensionalData.jl", rev = "main"),
           ])

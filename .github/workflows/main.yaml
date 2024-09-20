@@ -39,9 +39,7 @@ jobs:
           QUARTO_JULIA_PROJECT: "@quarto"
 
       - name: Render and Publish
-        uses: quarto-dev/quarto-actions/publish@v2
-        with:
-          target: gh-pages
+        run: julia helpers/deploy_with_preview.jl
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           QUARTO_JULIA_PROJECT: "@quarto"

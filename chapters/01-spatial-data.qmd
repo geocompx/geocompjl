@@ -73,7 +73,24 @@ There is more to CRSs, as described in @sec-coordinate-reference-systems-intro a
 TODO: explain the JuliaGeo ecosystem like they explain geopandas
 E.g GeoInterface defines how to access any geometry, then LibGEOS (wrapping GEOS), GeometryOps, Proj, etc consume such geometries.
 
+<!--
+
+-->
+
 ### Vector data classes
+
+Julia's geographic vector data model is based on the [Simple Features](https://en.wikipedia.org/wiki/Simple_Features) standard, which is an ISO standard for representing vector data.  Simple Features defines types of geometries (points, lines, polygons, multipolygons, etc.), as well as "feature collections" that are basically tables of geometries associated with some data.
+
+Starting with the highest level class, feature collections come in two flavours:
+- Loaded from file (`Shapefile.Table`, `GeoJSON.FeatureCollection`, ...)
+- Tables with geometry columns (e.g. `DataFrame`, but can be any [Julia table](https://github.com/JuliaData/Tables.jl))
+
+One can easily convert from feature collections to 
+
+<!--
+
+-->
+
 
 ```{julia}
 using GeoDataFrames

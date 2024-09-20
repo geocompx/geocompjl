@@ -27,7 +27,7 @@ jobs:
             # TODO: DimensionalData v0.28 is not compatible with Rasters latest version,
             # and has Makie fixes that we need for the book, otherwise plotting errors out.
             # These can be removed after Rasters.jl's new breaking version.
-            PackageSpec(url = "https://github.com/asinghvi17/Rasters.jl", rev = "as/makie_and_cf"),
+            PackageSpec(url = "https://github.com/asinghvi17/Rasters.jl", rev = "as/dd28"),
             PackageSpec(url = "https://github.com/rafaqz/DimensionalData.jl", rev = "main"),
           ])
         shell: julia {0}

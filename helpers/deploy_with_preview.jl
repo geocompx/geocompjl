@@ -154,7 +154,7 @@ function git_commands(sshconfig=nothing)
     end
 
     # Copy docs to `subfolder` directory.
-    deploy_dir = subfolder === nothing ? "." : joinpath(dirname, subfolder)
+    deploy_dir = subfolder === nothing ? "." : joinpath(".", subfolder)
     gitrm_copy(target_dir, deploy_dir)
 
     # Add, commit, and push the docs to the remote.

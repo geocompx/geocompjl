@@ -3,7 +3,7 @@
 - Use one line per sentence during development for ease of tracking changes
 - Leave a single empty line space before and after each code chunk
 - Format content as follows: 
-    - **package_name**
+    - **PackageName.jl**
     - `class_of_object`
     - `function_name()`
 - Spelling: use `en-us`
@@ -11,12 +11,8 @@
 
 # Code
 
-- `library(package)` - library without quotes
-- `=` - assignment operator (instead of `<-`)
 - ` = ` , ` > `, etc. - spaces around operators
-- `"text"` - double quotes for character values
-- `for (i in 1:9) {print(i)}` - use space separation for curly brackets. Also use space after `for`.
-- When indenting your code, use two spaces
+- When indenting your code, use two spaces [TODO: should we use four spaces?]
 
 # Comments
 

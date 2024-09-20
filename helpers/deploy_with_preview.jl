@@ -68,7 +68,7 @@ end
 
 # Here we know that the site builds to `docs/`, 
 # but you could customize this directory in the future.
-builddir = "docs"
+target_dir = "docs" # builddir
 upstream = "https://github.com/geocompx/geocompjl.git"
 branch = "gh-pages"
 

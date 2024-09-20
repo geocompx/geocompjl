@@ -8,7 +8,7 @@
 
 <meta name="description" content="An introductory resource for working with geographic data in Julia">
 
-<title>6&nbsp; Raster-vector interactions – Geocomputation with Julia</title>
+<title>5&nbsp; Raster-vector interactions – Geocomputation with Julia</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -148,7 +148,7 @@ window.Quarto = {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/05-raster-vector.html"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Raster-vector interactions</span></a></li></ol></nav>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/05-raster-vector.html"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Raster-vector interactions</span></a></li></ol></nav>
         <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
         </a>
       <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
@@ -208,55 +208,55 @@ window.Quarto = {
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../chapters/preface.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Preface</span></span></a>
+ <span class="menu-text">Preface</span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../chapters/01-spatial-data.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Geographic data in Julia</span></span></a>
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Geographic data in Julia</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../chapters/02-attribute-operations.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Attribute data operations</span></span></a>
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Attribute data operations</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../chapters/03-spatial-operations.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Spatial data operations</span></span></a>
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Spatial data operations</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../chapters/04-geometry-operations.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Geometry operations</span></span></a>
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Geometry operations</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../chapters/05-raster-vector.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Raster-vector interactions</span></span></a>
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Raster-vector interactions</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../chapters/06-reproj.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Reprojecting geographic data</span></span></a>
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Reprojecting geographic data</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../chapters/07-read-write.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Geographic data I/O</span></span></a>
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Geographic data I/O</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="../chapters/08-mapping.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">Making maps with Julia</span></span></a>
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">Making maps with Julia</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -283,26 +283,26 @@ window.Quarto = {
    
   <ul>
   <li><a href="#prerequisites" id="toc-prerequisites" class="nav-link" data-scroll-target="#prerequisites">Prerequisites</a></li>
-  <li><a href="#introduction" id="toc-introduction" class="nav-link" data-scroll-target="#introduction"><span class="header-section-number">6.1</span> Introduction</a></li>
-  <li><a href="#sec-raster-cropping" id="toc-sec-raster-cropping" class="nav-link" data-scroll-target="#sec-raster-cropping"><span class="header-section-number">6.2</span> Raster masking and cropping</a></li>
-  <li><a href="#sec-raster-extraction" id="toc-sec-raster-extraction" class="nav-link" data-scroll-target="#sec-raster-extraction"><span class="header-section-number">6.3</span> Raster extraction</a>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link" data-scroll-target="#introduction"><span class="header-section-number">5.1</span> Introduction</a></li>
+  <li><a href="#sec-raster-cropping" id="toc-sec-raster-cropping" class="nav-link" data-scroll-target="#sec-raster-cropping"><span class="header-section-number">5.2</span> Raster masking and cropping</a></li>
+  <li><a href="#sec-raster-extraction" id="toc-sec-raster-extraction" class="nav-link" data-scroll-target="#sec-raster-extraction"><span class="header-section-number">5.3</span> Raster extraction</a>
   <ul>
-  <li><a href="#sec-extraction-to-points" id="toc-sec-extraction-to-points" class="nav-link" data-scroll-target="#sec-extraction-to-points"><span class="header-section-number">6.3.1</span> Extraction to points</a></li>
-  <li><a href="#sec-extraction-to-lines" id="toc-sec-extraction-to-lines" class="nav-link" data-scroll-target="#sec-extraction-to-lines"><span class="header-section-number">6.3.2</span> Extraction to lines</a></li>
-  <li><a href="#sec-extraction-to-polygons" id="toc-sec-extraction-to-polygons" class="nav-link" data-scroll-target="#sec-extraction-to-polygons"><span class="header-section-number">6.3.3</span> Extraction to polygons</a></li>
+  <li><a href="#sec-extraction-to-points" id="toc-sec-extraction-to-points" class="nav-link" data-scroll-target="#sec-extraction-to-points"><span class="header-section-number">5.3.1</span> Extraction to points</a></li>
+  <li><a href="#sec-extraction-to-lines" id="toc-sec-extraction-to-lines" class="nav-link" data-scroll-target="#sec-extraction-to-lines"><span class="header-section-number">5.3.2</span> Extraction to lines</a></li>
+  <li><a href="#sec-extraction-to-polygons" id="toc-sec-extraction-to-polygons" class="nav-link" data-scroll-target="#sec-extraction-to-polygons"><span class="header-section-number">5.3.3</span> Extraction to polygons</a></li>
   </ul></li>
-  <li><a href="#sec-rasterization" id="toc-sec-rasterization" class="nav-link" data-scroll-target="#sec-rasterization"><span class="header-section-number">6.4</span> Rasterization</a>
+  <li><a href="#sec-rasterization" id="toc-sec-rasterization" class="nav-link" data-scroll-target="#sec-rasterization"><span class="header-section-number">5.4</span> Rasterization</a>
   <ul>
-  <li><a href="#sec-rasterizing-points" id="toc-sec-rasterizing-points" class="nav-link" data-scroll-target="#sec-rasterizing-points"><span class="header-section-number">6.4.1</span> Rasterizing points</a></li>
-  <li><a href="#sec-rasterizing-lines-and-polygons" id="toc-sec-rasterizing-lines-and-polygons" class="nav-link" data-scroll-target="#sec-rasterizing-lines-and-polygons"><span class="header-section-number">6.4.2</span> Rasterizing lines and polygons</a></li>
+  <li><a href="#sec-rasterizing-points" id="toc-sec-rasterizing-points" class="nav-link" data-scroll-target="#sec-rasterizing-points"><span class="header-section-number">5.4.1</span> Rasterizing points</a></li>
+  <li><a href="#sec-rasterizing-lines-and-polygons" id="toc-sec-rasterizing-lines-and-polygons" class="nav-link" data-scroll-target="#sec-rasterizing-lines-and-polygons"><span class="header-section-number">5.4.2</span> Rasterizing lines and polygons</a></li>
   </ul></li>
-  <li><a href="#sec-spatial-vectorization" id="toc-sec-spatial-vectorization" class="nav-link" data-scroll-target="#sec-spatial-vectorization"><span class="header-section-number">6.5</span> Spatial vectorization</a>
+  <li><a href="#sec-spatial-vectorization" id="toc-sec-spatial-vectorization" class="nav-link" data-scroll-target="#sec-spatial-vectorization"><span class="header-section-number">5.5</span> Spatial vectorization</a>
   <ul>
-  <li><a href="#sec-raster-to-polygons" id="toc-sec-raster-to-polygons" class="nav-link" data-scroll-target="#sec-raster-to-polygons"><span class="header-section-number">6.5.1</span> Raster to polygons</a></li>
-  <li><a href="#sec-raster-to-points" id="toc-sec-raster-to-points" class="nav-link" data-scroll-target="#sec-raster-to-points"><span class="header-section-number">6.5.2</span> Raster to points</a></li>
-  <li><a href="#sec-raster-to-contours" id="toc-sec-raster-to-contours" class="nav-link" data-scroll-target="#sec-raster-to-contours"><span class="header-section-number">6.5.3</span> Raster to contours</a></li>
+  <li><a href="#sec-raster-to-polygons" id="toc-sec-raster-to-polygons" class="nav-link" data-scroll-target="#sec-raster-to-polygons"><span class="header-section-number">5.5.1</span> Raster to polygons</a></li>
+  <li><a href="#sec-raster-to-points" id="toc-sec-raster-to-points" class="nav-link" data-scroll-target="#sec-raster-to-points"><span class="header-section-number">5.5.2</span> Raster to points</a></li>
+  <li><a href="#sec-raster-to-contours" id="toc-sec-raster-to-contours" class="nav-link" data-scroll-target="#sec-raster-to-contours"><span class="header-section-number">5.5.3</span> Raster to contours</a></li>
   </ul></li>
-  <li><a href="#sec-distance-to-nearest-geometry" id="toc-sec-distance-to-nearest-geometry" class="nav-link" data-scroll-target="#sec-distance-to-nearest-geometry"><span class="header-section-number">6.6</span> Distance to nearest geometry</a></li>
+  <li><a href="#sec-distance-to-nearest-geometry" id="toc-sec-distance-to-nearest-geometry" class="nav-link" data-scroll-target="#sec-distance-to-nearest-geometry"><span class="header-section-number">5.6</span> Distance to nearest geometry</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/geocompx/geocompjl/edit/main/chapters/05-raster-vector.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li></ul></div></nav>
     </div>
@@ -311,7 +311,7 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title"><span id="sec-raster-vector" class="quarto-section-identifier"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Raster-vector interactions</span></span></h1>
+<h1 class="title"><span id="sec-raster-vector" class="quarto-section-identifier"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Raster-vector interactions</span></span></h1>
 </div>
 
 <!--
@@ -391,23 +391,23 @@ You can feel free to set this for your own work, but it is not required.</p>
 </div>
 </div>
 </section>
-<section id="introduction" class="level2" data-number="6.1">
-<h2 data-number="6.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">6.1</span> Introduction</h2>
-<p>This chapter focuses on interactions between raster and vector geographic data models, both introduced in <a href="01-spatial-data.html" class="quarto-xref"><span>Chapter 2</span></a>. It includes four main techniques:</p>
+<section id="introduction" class="level2" data-number="5.1">
+<h2 data-number="5.1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">5.1</span> Introduction</h2>
+<p>This chapter focuses on interactions between raster and vector geographic data models, both introduced in <a href="01-spatial-data.html" class="quarto-xref"><span>Chapter 1</span></a>. It includes four main techniques:</p>
 <ul>
-<li>Raster cropping and masking using vector objects (<a href="#sec-raster-cropping" class="quarto-xref"><span>Section 6.2</span></a>)</li>
-<li>Extracting raster values using different types of vector data (<a href="#sec-raster-extraction" class="quarto-xref"><span>Section 6.3</span></a>)</li>
-<li>Raster to vector conversion (<a href="#sec-rasterization" class="quarto-xref"><span>Section 6.4</span></a>)</li>
-<li>Vector to raster conversion (<a href="#sec-spatial-vectorization" class="quarto-xref"><span>Section 6.5</span></a>)</li>
+<li>Raster cropping and masking using vector objects (<a href="#sec-raster-cropping" class="quarto-xref"><span>Section 5.2</span></a>)</li>
+<li>Extracting raster values using different types of vector data (<a href="#sec-raster-extraction" class="quarto-xref"><span>Section 5.3</span></a>)</li>
+<li>Raster to vector conversion (<a href="#sec-rasterization" class="quarto-xref"><span>Section 5.4</span></a>)</li>
+<li>Vector to raster conversion (<a href="#sec-spatial-vectorization" class="quarto-xref"><span>Section 5.5</span></a>)</li>
 </ul>
 <p>These concepts are demonstrated using data from previous chapters, to understand their potential real-world applications.</p>
 </section>
-<section id="sec-raster-cropping" class="level2" data-number="6.2">
-<h2 data-number="6.2" class="anchored" data-anchor-id="sec-raster-cropping"><span class="header-section-number">6.2</span> Raster masking and cropping</h2>
-<p>Many geographic data projects involve integrating data from many different sources, such as remote sensing images (rasters) and administrative boundaries (vectors). Often the extent of input raster datasets is larger than the area of interest. In this case, raster <em>masking</em>, <em>cropping</em>, or both, are useful for unifying the spatial extent of input data (<a href="#fig-raster-crop" class="quarto-xref">Figure&nbsp;<span>6.1</span></a> (b) and (c), and the following two examples, illustrate the difference between masking and cropping). Both operations reduce memory use and computational demand for subsequent analysis, and may be a necessary preprocessing step before creating attractive maps involving raster data.</p>
+<section id="sec-raster-cropping" class="level2" data-number="5.2">
+<h2 data-number="5.2" class="anchored" data-anchor-id="sec-raster-cropping"><span class="header-section-number">5.2</span> Raster masking and cropping</h2>
+<p>Many geographic data projects involve integrating data from many different sources, such as remote sensing images (rasters) and administrative boundaries (vectors). Often the extent of input raster datasets is larger than the area of interest. In this case, raster <em>masking</em>, <em>cropping</em>, or both, are useful for unifying the spatial extent of input data (<a href="#fig-raster-crop" class="quarto-xref">Figure&nbsp;<span>5.1</span></a> (b) and (c), and the following two examples, illustrate the difference between masking and cropping). Both operations reduce memory use and computational demand for subsequent analysis, and may be a necessary preprocessing step before creating attractive maps involving raster data.</p>
 <p>We will use two layers to illustrate raster cropping:</p>
 <ul>
-<li>The <code>srtm.tif</code> raster representing elevation, in meters above sea level, in south-western Utah: a <strong>Rasters.jl</strong> file connection named <code>src_srtm</code> (see <a href="#fig-raster-crop" class="quarto-xref">Figure&nbsp;<span>6.1</span></a> (a))</li>
+<li>The <code>srtm.tif</code> raster representing elevation, in meters above sea level, in south-western Utah: a <strong>Rasters.jl</strong> file connection named <code>src_srtm</code> (see <a href="#fig-raster-crop" class="quarto-xref">Figure&nbsp;<span>5.1</span></a> (a))</li>
 <li>The <code>zion.gpkg</code> vector layer representing the Zion National Park boundaries (a <code>DataFrame</code> named <code>zion</code>)</li>
 </ul>
 <p>Both target and cropping objects must have the same projection. Since it is easier and more precise to reproject vector layers, compared to rasters, we use the following expression to reproject (<span class="quarto-unresolved-ref">?sec-reprojecting-vector-geometries</span>) the vector layer <code>zion</code> into the <a href="https://en.wikipedia.org/wiki/Spatial_reference_system">coordinate reference system</a> (CRS) of the raster <code>src_srtm</code>. The CRS defines how the coordinates of the geometry relate to locations on the surface of the Earth.</p>
@@ -575,11 +575,11 @@ You can feel free to set this for your own work, but it is not required.</p>
 
 
 
-```eucijrs
+```mvpuopk
 masker = GI.extent(zion.geom[1])
 ```
 
-```eucijrs
+```mvpuopk
 Rasters.mask(src_srtm; with = masker)
 ```
 
@@ -593,11 +593,11 @@ Rasters.mask(src_srtm; with = masker)
 
 
 
-```eucijrs
+```mvpuopk
 # masker = GI.Extents.Extent(X = (), Y = ())
 ```
 
-```eucijrs
+```mvpuopk
 # Rasters.mask(src_srtm; with = masker)
 ```
 
@@ -693,7 +693,7 @@ Note
 <pre><code>"output/srtm_masked_cropped.tif"</code></pre>
 </div>
 </div>
-<p><a href="#fig-raster-crop" class="quarto-xref">Figure&nbsp;<span>6.1</span></a> shows the original raster, and the three masking and/or cropping results.</p>
+<p><a href="#fig-raster-crop" class="quarto-xref">Figure&nbsp;<span>5.1</span></a> shows the original raster, and the three masking and/or cropping results.</p>
 <div class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb26"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> <span class="fu">Figure</span>(size <span class="op">=</span> (<span class="fl">600</span>, <span class="fl">600</span>))</span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -741,23 +741,23 @@ Note
 </div>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-raster-crop-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6.1
+Figure&nbsp;5.1
 </figcaption>
 </figure>
 </div>
 </div>
 </section>
-<section id="sec-raster-extraction" class="level2" data-number="6.3">
-<h2 data-number="6.3" class="anchored" data-anchor-id="sec-raster-extraction"><span class="header-section-number">6.3</span> Raster extraction</h2>
-<p>Raster extraction is the process of identifying and returning the values associated with a ‘target’ raster at specific locations, based on a (typically vector) geographic ‘selector’ object. The reverse of raster extraction—assigning raster cell values based on vector objects—is rasterization, described in <a href="#sec-rasterization" class="quarto-xref"><span>Section 6.4</span></a>.</p>
+<section id="sec-raster-extraction" class="level2" data-number="5.3">
+<h2 data-number="5.3" class="anchored" data-anchor-id="sec-raster-extraction"><span class="header-section-number">5.3</span> Raster extraction</h2>
+<p>Raster extraction is the process of identifying and returning the values associated with a ‘target’ raster at specific locations, based on a (typically vector) geographic ‘selector’ object. The reverse of raster extraction—assigning raster cell values based on vector objects—is rasterization, described in <a href="#sec-rasterization" class="quarto-xref"><span>Section 5.4</span></a>.</p>
 <p><strong>Rasters.jl</strong> provides modular raster extraction and statistics functions, and we use this package in the following examples.</p>
 <ul>
-<li>To <em>points</em> (<a href="#sec-extraction-to-points" class="quarto-xref"><span>Section 6.3.1</span></a>) or to <em>lines</em> (<a href="#sec-extraction-to-lines" class="quarto-xref"><span>Section 6.3.2</span></a>), via the <code>Rasters.extract</code> function</li>
-<li>To <em>polygons</em> (<a href="#sec-extraction-to-polygons" class="quarto-xref"><span>Section 6.3.3</span></a>), via the <code>Rasters.zonal</code> function</li>
+<li>To <em>points</em> (<a href="#sec-extraction-to-points" class="quarto-xref"><span>Section 5.3.1</span></a>) or to <em>lines</em> (<a href="#sec-extraction-to-lines" class="quarto-xref"><span>Section 5.3.2</span></a>), via the <code>Rasters.extract</code> function</li>
+<li>To <em>polygons</em> (<a href="#sec-extraction-to-polygons" class="quarto-xref"><span>Section 5.3.3</span></a>), via the <code>Rasters.zonal</code> function</li>
 </ul>
-<section id="sec-extraction-to-points" class="level3" data-number="6.3.1">
-<h3 data-number="6.3.1" class="anchored" data-anchor-id="sec-extraction-to-points"><span class="header-section-number">6.3.1</span> Extraction to points</h3>
-<p>The simplest type of raster extraction is getting the values of raster cells at specific points. To demonstrate extraction to points, we will use <code>zion_points</code>, which contains a sample of 30 locations within the Zion National Park (<a href="#fig-zion-points" class="quarto-xref">Figure&nbsp;<span>6.2</span></a>).</p>
+<section id="sec-extraction-to-points" class="level3" data-number="5.3.1">
+<h3 data-number="5.3.1" class="anchored" data-anchor-id="sec-extraction-to-points"><span class="header-section-number">5.3.1</span> Extraction to points</h3>
+<p>The simplest type of raster extraction is getting the values of raster cells at specific points. To demonstrate extraction to points, we will use <code>zion_points</code>, which contains a sample of 30 locations within the Zion National Park (<a href="#fig-zion-points" class="quarto-xref">Figure&nbsp;<span>5.2</span></a>).</p>
 <div class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb27"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>fig, ax, plt <span class="op">=</span> <span class="fu">plot</span>(src_srtm)</span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, zion_points.geom, color<span class="op">=:</span>black, strokecolor<span class="op">=:</span>white, strokewidth <span class="op">=</span> <span class="fl">1</span>);</span>
@@ -789,7 +789,7 @@ Figure&nbsp;6.1
 </div>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-zion-points-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6.2
+Figure&nbsp;5.2
 </figcaption>
 </figure>
 </div>
@@ -937,10 +937,10 @@ This corresponds to <code>interpolate='nearest'</code> in the Python <code>raste
 </div>
 <p>You can read from a single band by selecting the band in the Raster. TODO finish this text</p>
 </section>
-<section id="sec-extraction-to-lines" class="level3" data-number="6.3.2">
-<h3 data-number="6.3.2" class="anchored" data-anchor-id="sec-extraction-to-lines"><span class="header-section-number">6.3.2</span> Extraction to lines</h3>
+<section id="sec-extraction-to-lines" class="level3" data-number="5.3.2">
+<h3 data-number="5.3.2" class="anchored" data-anchor-id="sec-extraction-to-lines"><span class="header-section-number">5.3.2</span> Extraction to lines</h3>
 <p>Raster extraction is also applicable with line selectors. The typical line extraction algorithm is to extract one value for each raster cell touched by a line. However, this particular approach is not recommended to obtain values along the transects, as it is hard to get the correct distance between each pair of extracted raster values.</p>
-<p>For line extraction, a better approach is to split the line into many points (at equal distances along the line) and then extract the values for these points using the “extraction to points” technique (<a href="#sec-extraction-to-points" class="quarto-xref"><span>Section 6.3.1</span></a>). To demonstrate this, the code below creates (see <span class="quarto-unresolved-ref">?sec-vector-data</span> for recap) <code>zion_transect</code>, a straight line going from northwest to southeast of the Zion National Park.</p>
+<p>For line extraction, a better approach is to split the line into many points (at equal distances along the line) and then extract the values for these points using the “extraction to points” technique (<a href="#sec-extraction-to-points" class="quarto-xref"><span>Section 5.3.1</span></a>). To demonstrate this, the code below creates (see <span class="quarto-unresolved-ref">?sec-vector-data</span> for recap) <code>zion_transect</code>, a straight line going from northwest to southeast of the Zion National Park.</p>
 <div id="38" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb32"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>coords <span class="op">=</span> [[<span class="op">-</span><span class="fl">113.2</span>, <span class="fl">37.45</span>], [<span class="op">-</span><span class="fl">112.9</span>, <span class="fl">37.2</span>]]</span>
 <span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>zion_transect <span class="op">=</span> GI.<span class="fu">LineString</span>(coords)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1004,7 +1004,7 @@ This corresponds to <code>interpolate='nearest'</code> in the Python <code>raste
  (-112.90000000000002, 37.20000000000002)</code></pre>
 </div>
 </div>
-<p>Finally, we extract the elevation values for each point in our transect and combine the information with <code>zion_transect_pnt</code> (after “promoting” it to a <code>DataFrame</code>, to accommodate extra attributes), using the point extraction method shown earlier (<a href="#sec-extraction-to-points" class="quarto-xref"><span>Section 6.3.1</span></a>). We also attach the distance of each point along the line, to be used to plot an elevation profile.</p>
+<p>Finally, we extract the elevation values for each point in our transect and combine the information with <code>zion_transect_pnt</code> (after “promoting” it to a <code>DataFrame</code>, to accommodate extra attributes), using the point extraction method shown earlier (<a href="#sec-extraction-to-points" class="quarto-xref"><span>Section 5.3.1</span></a>). We also attach the distance of each point along the line, to be used to plot an elevation profile.</p>
 <div id="48" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb42"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>zion_transect_pnt <span class="op">=</span> <span class="fu">DataFrame</span>(geometry <span class="op">=</span> zion_transect_pnt)</span>
 <span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -1111,7 +1111,7 @@ This corresponds to <code>interpolate='nearest'</code> in the Python <code>raste
 </div>
 </div>
 </div>
-<p>The information in <code>zion_transect_pnt</code>, namely the <code>"dist"</code> and <code>"elev"</code> attributes, can now be used to draw an elevation profile, as illustrated in <a href="#fig-zion-transect" class="quarto-xref">Figure&nbsp;<span>6.3</span></a>.</p>
+<p>The information in <code>zion_transect_pnt</code>, namely the <code>"dist"</code> and <code>"elev"</code> attributes, can now be used to draw an elevation profile, as illustrated in <a href="#fig-zion-transect" class="quarto-xref">Figure&nbsp;<span>5.3</span></a>.</p>
 <div class="sourceCode cell-code" id="cb45"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Raster and a line transect</span></span>
 <span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>fig, ax, plt <span class="op">=</span> <span class="fu">plot</span>(src_srtm)</span>
 <span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, zion_transect; color <span class="op">=</span> <span class="op">:</span>black)</span>
@@ -1172,15 +1172,15 @@ This corresponds to <code>interpolate='nearest'</code> in the Python <code>raste
 </div>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-zion-transect-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6.3: Extracting a raster values profile to line
+Figure&nbsp;5.3: Extracting a raster values profile to line
 </figcaption>
 </figure>
 </div>
 </section>
-<section id="sec-extraction-to-polygons" class="level3" data-number="6.3.3">
-<h3 data-number="6.3.3" class="anchored" data-anchor-id="sec-extraction-to-polygons"><span class="header-section-number">6.3.3</span> Extraction to polygons</h3>
+<section id="sec-extraction-to-polygons" class="level3" data-number="5.3.3">
+<h3 data-number="5.3.3" class="anchored" data-anchor-id="sec-extraction-to-polygons"><span class="header-section-number">5.3.3</span> Extraction to polygons</h3>
 <p>The final type of geographic vector object that can be used for raster extraction is polygons.<br>
-Like lines, polygons tend to return many raster values per vector geometry. For continuous rasters (<a href="#fig-raster-extract-to-polygon" class="quarto-xref">Figure&nbsp;<span>6.4</span></a> (a)), we typically want to generate summary statistics for raster values per polygon, for example to characterize a single region or to compare many regions. The generation of raster summary statistics, by polygons, is demonstrated in the code below using <code>Rasters.zonal</code>, which creates a list of summary statistics for “zones” defined by geometry. In this case, a vector of length 1 is returned, since there is just one polygon in the <code>DataFrame</code>.</p>
+Like lines, polygons tend to return many raster values per vector geometry. For continuous rasters (<a href="#fig-raster-extract-to-polygon" class="quarto-xref">Figure&nbsp;<span>5.4</span></a> (a)), we typically want to generate summary statistics for raster values per polygon, for example to characterize a single region or to compare many regions. The generation of raster summary statistics, by polygons, is demonstrated in the code below using <code>Rasters.zonal</code>, which creates a list of summary statistics for “zones” defined by geometry. In this case, a vector of length 1 is returned, since there is just one polygon in the <code>DataFrame</code>.</p>
 <div id="54" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb46"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Statistics</span> <span class="co"># for `mean`</span></span>
 <span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>rmean <span class="op">=</span> Rasters.<span class="fu">zonal</span>(mean, src_srtm; of <span class="op">=</span> zion)</span>
@@ -1285,7 +1285,7 @@ You can pass multiple functions to a single <code>Rasters.zonal</code> call
 </div>
 </div>
 <p>Because there is only one polygon in the example, single-element vectors are returned. However, if <code>zion</code> was composed of more than one polygon, we would accordingly get more elements in the returned vectors. The result provides useful summaries, for example that the maximum height in the park is <code>2661</code> <span class="math inline">\(m\)</span> above sea level.</p>
-<p>To count occurrences of categorical raster values within polygons (<a href="#fig-raster-extract-to-polygon" class="quarto-xref">Figure&nbsp;<span>6.4</span></a> (b)), we can use masking (<a href="#sec-raster-cropping" class="quarto-xref"><span>Section 6.2</span></a>) combined with <code>StatsBase.countmap</code>, as follows.</p>
+<p>To count occurrences of categorical raster values within polygons (<a href="#fig-raster-extract-to-polygon" class="quarto-xref">Figure&nbsp;<span>5.4</span></a> (b)), we can use masking (<a href="#sec-raster-cropping" class="quarto-xref"><span>Section 5.2</span></a>) combined with <code>StatsBase.countmap</code>, as follows.</p>
 <div id="62" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb53"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>out_image <span class="op">=</span> Rasters.<span class="fu">mask</span>(src_nlcd; with <span class="op">=</span> GO.<span class="fu">reproject</span>(zion; target_crs <span class="op">=</span> GI.<span class="fu">crs</span>(src_nlcd)))</span>
 <span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">StatsBase</span></span>
@@ -1303,7 +1303,7 @@ You can pass multiple functions to a single <code>Rasters.zonal</code> call
 </div>
 </div>
 <p>According to the result, for example, the value <code>2</code> (“Developed” class) appears in <code>4205</code> pixels within the Zion polygon.</p>
-<p><a href="#fig-raster-extract-to-polygon" class="quarto-xref">Figure&nbsp;<span>6.4</span></a> illustrates the two types of raster extraction to polygons described above.</p>
+<p><a href="#fig-raster-extract-to-polygon" class="quarto-xref">Figure&nbsp;<span>5.4</span></a> illustrates the two types of raster extraction to polygons described above.</p>
 <div class="sourceCode cell-code" id="cb55"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Continuous raster</span></span>
 <span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>fig, ax, plt <span class="op">=</span> <span class="fu">plot</span>(src_srtm)</span>
 <span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a><span class="fu">poly!</span>(ax, zion.geom; color <span class="op">=</span> <span class="op">:</span>transparent, strokecolor <span class="op">=</span> <span class="op">:</span>black, strokewidth <span class="op">=</span> <span class="fl">0.75</span>)</span>
@@ -1360,7 +1360,7 @@ You can pass multiple functions to a single <code>Rasters.zonal</code> call
 </div>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-raster-extract-to-polygon-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6.4: Sample data used for continuous and categorical raster extraction to a polygon
+Figure&nbsp;5.4: Sample data used for continuous and categorical raster extraction to a polygon
 </figcaption>
 </figure>
 </div>
@@ -1369,9 +1369,9 @@ Figure&nbsp;6.4: Sample data used for continuous and categorical raster extracti
 <!-- as: We haven't implemented this in **Rasters.jl** yet but it would not be hard potentially... -->
 </section>
 </section>
-<section id="sec-rasterization" class="level2" data-number="6.4">
-<h2 data-number="6.4" class="anchored" data-anchor-id="sec-rasterization"><span class="header-section-number">6.4</span> Rasterization</h2>
-<p>Rasterization is the conversion of vector objects into their representation in raster objects. Usually, the output raster is used for quantitative analysis (e.g., analysis of terrain) or modeling. As we saw in <a href="01-spatial-data.html" class="quarto-xref"><span>Chapter 2</span></a>, the raster data model has some characteristics that make it conducive to certain methods. Furthermore, the process of rasterization can help simplify datasets because the resulting values all have the same spatial resolution: rasterization can be seen as a special type of geographic data aggregation.</p>
+<section id="sec-rasterization" class="level2" data-number="5.4">
+<h2 data-number="5.4" class="anchored" data-anchor-id="sec-rasterization"><span class="header-section-number">5.4</span> Rasterization</h2>
+<p>Rasterization is the conversion of vector objects into their representation in raster objects. Usually, the output raster is used for quantitative analysis (e.g., analysis of terrain) or modeling. As we saw in <a href="01-spatial-data.html" class="quarto-xref"><span>Chapter 1</span></a>, the raster data model has some characteristics that make it conducive to certain methods. Furthermore, the process of rasterization can help simplify datasets because the resulting values all have the same spatial resolution: rasterization can be seen as a special type of geographic data aggregation.</p>
 <p><strong>Rasters.jl</strong> provides the <code>Rasters.rasterize</code> function for rasterizing vector data. To make this happen, we need to have some definition for a “template” grid, i.e., the “template” raster defining the extent, resolution and CRS of the output. We can also pass a pre-existing raster, in which case Rasters uses the existing grid definition.</p>
 <p>As for the vector geometries and their associated values, the <code>Rasters.rasterize</code> function can take input in multiple ways: - <code>; data::FeatureCollection, fill::Symbol</code> means that the values of the column passed to <code>fill</code> will be used to fill the raster. - <code>; data::Vector{Geometry}, fill::Vector</code> means that the values passed to <code>fill</code> will be associated with each geometry in <code>data</code> and used to fill the raster. - <code>; data::Any, fill::Function</code> calls <code>fill</code> with the current value</p>
 <p>Furthermore, we define how to handle multiple values burned into the same pixel, in the first argument called <code>reducer</code>.<br>
@@ -1384,12 +1384,12 @@ Many of these may not make sense to use but they are useful to know of.</p>
 <p>The spatial resolution (area of each “pixel”) of the “template” raster has a major impact on the results: if it is too low (cell size is too large), the result may miss the full geographic variability of the vector data; if it is too high, computational times may be excessive. There are no simple rules to follow when deciding an appropriate geographic resolution, which is heavily dependent on the intended use of the results. Often the target resolution is imposed on the user, for example when the output of rasterization needs to be aligned to an existing raster.</p>
 <p>Depending on the input data, rasterization typically takes one of two forms which we demonstrate next:</p>
 <ul>
-<li>in <em>point</em> rasterization (<a href="#sec-rasterizing-points" class="quarto-xref"><span>Section 6.4.1</span></a>), we typically choose how to treat multiple points: either to summarize presence/absence, point count, or summed attribute values (<a href="#fig-rasterize-points" class="quarto-xref">Figure&nbsp;<span>6.5</span></a>)</li>
-<li>in <em>line</em> and <em>polygon</em> rasterization (<a href="#sec-rasterizing-lines-and-polygons" class="quarto-xref"><span>Section 6.4.2</span></a>), there are typically no such “overlaps” and we simply “burn” attribute values, or fixed values, into pixels coinciding with the given geometries (<a href="#fig-rasterize-lines-polygons" class="quarto-xref">Figure&nbsp;<span>6.6</span></a>)</li>
+<li>in <em>point</em> rasterization (<a href="#sec-rasterizing-points" class="quarto-xref"><span>Section 5.4.1</span></a>), we typically choose how to treat multiple points: either to summarize presence/absence, point count, or summed attribute values (<a href="#fig-rasterize-points" class="quarto-xref">Figure&nbsp;<span>5.5</span></a>)</li>
+<li>in <em>line</em> and <em>polygon</em> rasterization (<a href="#sec-rasterizing-lines-and-polygons" class="quarto-xref"><span>Section 5.4.2</span></a>), there are typically no such “overlaps” and we simply “burn” attribute values, or fixed values, into pixels coinciding with the given geometries (<a href="#fig-rasterize-lines-polygons" class="quarto-xref">Figure&nbsp;<span>5.6</span></a>)</li>
 </ul>
-<section id="sec-rasterizing-points" class="level3" data-number="6.4.1">
-<h3 data-number="6.4.1" class="anchored" data-anchor-id="sec-rasterizing-points"><span class="header-section-number">6.4.1</span> Rasterizing points</h3>
-<p>To demonstrate point rasterization, we will prepare a “template” raster that has the same extent and CRS as the input vector data <code>cycle_hire_osm_projected</code> (a dataset on cycle hire points in London, illustrated in <a href="#fig-rasterize-points" class="quarto-xref">Figure&nbsp;<span>6.5</span></a> (a)) and a spatial resolution of 1000 <span class="math inline">\(m\)</span>. To do that, we first take our point layer and transform it to a projected CRS.</p>
+<section id="sec-rasterizing-points" class="level3" data-number="5.4.1">
+<h3 data-number="5.4.1" class="anchored" data-anchor-id="sec-rasterizing-points"><span class="header-section-number">5.4.1</span> Rasterizing points</h3>
+<p>To demonstrate point rasterization, we will prepare a “template” raster that has the same extent and CRS as the input vector data <code>cycle_hire_osm_projected</code> (a dataset on cycle hire points in London, illustrated in <a href="#fig-rasterize-points" class="quarto-xref">Figure&nbsp;<span>5.5</span></a> (a)) and a spatial resolution of 1000 <span class="math inline">\(m\)</span>. To do that, we first take our point layer and transform it to a projected CRS.</p>
 <div id="66" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb56"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>cycle_hire_osm_projected <span class="op">=</span> GO.<span class="fu">reproject</span>(cycle_hire_osm; target_crs <span class="op">=</span> GFT.<span class="fu">EPSG</span>(<span class="fl">27700</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="1">
@@ -1490,7 +1490,7 @@ Many of these may not make sense to use but they are useful to know of.</p>
 <p>Track https://github.com/geocompx/geocompjl/issues/5 to see if there’s a better way to get an extent from a vector of geometries.</p>
 </div>
 <p>As mentioned above, point rasterization can be a very flexible operation: the results depend not only on the nature of the template raster, but also on the the pixel “activation” method, namely the way we deal with multiple points matching the same pixel.</p>
-<p>To illustrate this flexibility, we will try three different approaches to point rasterization (<a href="#fig-rasterize-points" class="quarto-xref">Figure&nbsp;<span>6.5</span></a> (b)-(d)). First, we create a raster representing the presence or absence of cycle hire points (known as presence/absence rasters). In this case, we transfer the value of <code>1</code> to all pixels where at least one point falls in. In the <strong>Rasters.jl</strong> framework, we use the <code>Rasters.rasterize</code> function, as described above. In this first example, we want to write the value <code>1</code> where the points are present, and <code>0</code> otherwise.</p>
+<p>To illustrate this flexibility, we will try three different approaches to point rasterization (<a href="#fig-rasterize-points" class="quarto-xref">Figure&nbsp;<span>5.5</span></a> (b)-(d)). First, we create a raster representing the presence or absence of cycle hire points (known as presence/absence rasters). In this case, we transfer the value of <code>1</code> to all pixels where at least one point falls in. In the <strong>Rasters.jl</strong> framework, we use the <code>Rasters.rasterize</code> function, as described above. In this first example, we want to write the value <code>1</code> where the points are present, and <code>0</code> otherwise.</p>
 <div id="68" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb57"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>ch_raster1 <span class="op">=</span> Rasters.<span class="fu">rasterize</span>(</span>
 <span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>    last,                     <span class="co"># reducer</span></span>
@@ -1613,7 +1613,7 @@ Many of these may not make sense to use but they are useful to know of.</p>
       5.38708e5   missing    missing   …   missing    missing    missing</code></pre>
 </div>
 </div>
-<p>The input point layer <code>cycle_hire_osm_projected</code> and the three variants of rasterizing it <code>ch_raster1</code>, <code>ch_raster2</code>, and <code>ch_raster3</code> are shown in <a href="#fig-rasterize-points" class="quarto-xref">Figure&nbsp;<span>6.5</span></a>.</p>
+<p>The input point layer <code>cycle_hire_osm_projected</code> and the three variants of rasterizing it <code>ch_raster1</code>, <code>ch_raster2</code>, and <code>ch_raster3</code> are shown in <a href="#fig-rasterize-points" class="quarto-xref">Figure&nbsp;<span>5.5</span></a>.</p>
 <div class="sourceCode cell-code" id="cb65"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Input points</span></span>
 <span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>nonmissing_df <span class="op">=</span> <span class="fu">dropmissing</span>(cycle_hire_osm_projected, [<span class="op">:</span>capacity, <span class="op">:</span>geom])</span>
 <span id="cb65-3"><a href="#cb65-3" aria-hidden="true" tabindex="-1"></a>f, a, p <span class="op">=</span> <span class="fu">scatter</span>(nonmissing_df.geom; color <span class="op">=</span> nonmissing_df.capacity)</span>
@@ -1682,13 +1682,13 @@ Many of these may not make sense to use but they are useful to know of.</p>
 </div>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rasterize-points-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6.5: Original data and three variants of point rasterization
+Figure&nbsp;5.5: Original data and three variants of point rasterization
 </figcaption>
 </figure>
 </div>
 </section>
-<section id="sec-rasterizing-lines-and-polygons" class="level3" data-number="6.4.2">
-<h3 data-number="6.4.2" class="anchored" data-anchor-id="sec-rasterizing-lines-and-polygons"><span class="header-section-number">6.4.2</span> Rasterizing lines and polygons</h3>
+<section id="sec-rasterizing-lines-and-polygons" class="level3" data-number="5.4.2">
+<h3 data-number="5.4.2" class="anchored" data-anchor-id="sec-rasterizing-lines-and-polygons"><span class="header-section-number">5.4.2</span> Rasterizing lines and polygons</h3>
 <p>Another dataset based on California’s polygons and borders (created below) illustrates rasterization of lines. There are three preliminary steps. First, we subset the California polygon.</p>
 <div id="78" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb66"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a>california <span class="op">=</span> us_states[ us_states[!, <span class="st">"NAME"</span>] <span class="op">.==</span> <span class="st">"California"</span>, <span class="op">:</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -1772,7 +1772,7 @@ Figure&nbsp;6.5: Original data and three variants of point rasterization
  -114.41    missing    missing    missing       missing    missing    missing</code></pre>
 </div>
 </div>
-<p>Compare it to a polygon rasterization, with <code>all_touched=False</code> (the default), which selects only raster cells whose centroids are inside the selector polygon, as illustrated in <a href="#fig-rasterize-lines-polygons" class="quarto-xref">Figure&nbsp;<span>6.6</span></a> (right).</p>
+<p>Compare it to a polygon rasterization, with <code>all_touched=False</code> (the default), which selects only raster cells whose centroids are inside the selector polygon, as illustrated in <a href="#fig-rasterize-lines-polygons" class="quarto-xref">Figure&nbsp;<span>5.6</span></a> (right).</p>
 <div id="84" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb71"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>california_raster2 <span class="op">=</span> Rasters.<span class="fu">rasterize</span>(</span>
 <span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a>    last, </span>
@@ -1804,7 +1804,7 @@ Figure&nbsp;6.5: Original data and three variants of point rasterization
  -114.41    missing    missing    missing       missing    missing    missing</code></pre>
 </div>
 </div>
-<p>To illustrate which raster pixels are actually selected as part of rasterization, we also show them as points. This also requires the following code section to calculate the points, which we explain in <a href="#sec-spatial-vectorization" class="quarto-xref"><span>Section 6.5</span></a>.</p>
+<p>To illustrate which raster pixels are actually selected as part of rasterization, we also show them as points. This also requires the following code section to calculate the points, which we explain in <a href="#sec-spatial-vectorization" class="quarto-xref"><span>Section 5.5</span></a>.</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
 <ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-2-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-1" role="tab" aria-controls="tabset-2-1" aria-selected="true">DimPoints</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-2" role="tab" aria-controls="tabset-2-2" aria-selected="false">Constructing from lookups</a></li></ul>
 <div class="tab-content">
@@ -1867,7 +1867,7 @@ Figure&nbsp;6.5: Original data and three variants of point rasterization
 </div>
 </div>
 </div>
-<p><a href="#fig-rasterize-lines-polygons" class="quarto-xref">Figure&nbsp;<span>6.6</span></a> shows the input vector layer, the rasterization results, and the points <code>pnt</code>.</p>
+<p><a href="#fig-rasterize-lines-polygons" class="quarto-xref">Figure&nbsp;<span>5.6</span></a> shows the input vector layer, the rasterization results, and the points <code>pnt</code>.</p>
 <div class="sourceCode cell-code" id="cb77"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Line rasterization</span></span>
 <span id="cb77-2"><a href="#cb77-2" aria-hidden="true" tabindex="-1"></a>fig, ax, plt <span class="op">=</span> <span class="fu">plot</span>(california_raster1; colormap <span class="op">=</span> <span class="fu">cgrad</span>(<span class="op">:</span>Set3; categorical <span class="op">=</span> <span class="cn">true</span>))</span>
 <span id="cb77-3"><a href="#cb77-3" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, california_borders; color <span class="op">=</span> <span class="op">:</span>darkgrey, linewidth <span class="op">=</span> <span class="fl">1</span>)</span>
@@ -1909,23 +1909,23 @@ Figure&nbsp;6.5: Original data and three variants of point rasterization
 </div>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-rasterize-lines-polygons-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6.6: Examples of line and polygon rasterization
+Figure&nbsp;5.6: Examples of line and polygon rasterization
 </figcaption>
 </figure>
 </div>
 </section>
 </section>
-<section id="sec-spatial-vectorization" class="level2" data-number="6.5">
-<h2 data-number="6.5" class="anchored" data-anchor-id="sec-spatial-vectorization"><span class="header-section-number">6.5</span> Spatial vectorization</h2>
-<p>Spatial vectorization is the counterpart of rasterization (<a href="#sec-rasterization" class="quarto-xref"><span>Section 6.4</span></a>). It involves converting spatially continuous raster data into spatially discrete vector data such as points, lines or polygons. There are three standard methods to convert a raster to a vector layer, which we cover next:</p>
+<section id="sec-spatial-vectorization" class="level2" data-number="5.5">
+<h2 data-number="5.5" class="anchored" data-anchor-id="sec-spatial-vectorization"><span class="header-section-number">5.5</span> Spatial vectorization</h2>
+<p>Spatial vectorization is the counterpart of rasterization (<a href="#sec-rasterization" class="quarto-xref"><span>Section 5.4</span></a>). It involves converting spatially continuous raster data into spatially discrete vector data such as points, lines or polygons. There are three standard methods to convert a raster to a vector layer, which we cover next:</p>
 <ul>
-<li>Raster to polygons (<a href="#sec-raster-to-polygons" class="quarto-xref"><span>Section 6.5.1</span></a>)—converting raster cells to rectangular polygons, representing pixel areas</li>
-<li>Raster to points (<a href="#sec-raster-to-points" class="quarto-xref"><span>Section 6.5.2</span></a>)—converting raster cells to points, representing pixel centroids</li>
-<li>Raster to contours (<a href="#sec-raster-to-contours" class="quarto-xref"><span>Section 6.5.3</span></a>)</li>
+<li>Raster to polygons (<a href="#sec-raster-to-polygons" class="quarto-xref"><span>Section 5.5.1</span></a>)—converting raster cells to rectangular polygons, representing pixel areas</li>
+<li>Raster to points (<a href="#sec-raster-to-points" class="quarto-xref"><span>Section 5.5.2</span></a>)—converting raster cells to points, representing pixel centroids</li>
+<li>Raster to contours (<a href="#sec-raster-to-contours" class="quarto-xref"><span>Section 5.5.3</span></a>)</li>
 </ul>
 <p>Let us demonstrate all three in the given order.</p>
-<section id="sec-raster-to-polygons" class="level3" data-number="6.5.1">
-<h3 data-number="6.5.1" class="anchored" data-anchor-id="sec-raster-to-polygons"><span class="header-section-number">6.5.1</span> Raster to polygons</h3>
+<section id="sec-raster-to-polygons" class="level3" data-number="5.5.1">
+<h3 data-number="5.5.1" class="anchored" data-anchor-id="sec-raster-to-polygons"><span class="header-section-number">5.5.1</span> Raster to polygons</h3>
 <p>Rasters.jl does not currently have a function to convert a raster to a feature collection with one polygon per pixel or cell. This is a similar situation in Python with <code>rasterio</code>.</p>
 <p>GeometryOps.jl offers a <code>polygonize</code> function that returns a feature collection of polygons, where each feature has a <code>value</code> property that encodes the value of all pixels within that polygon. Each polygon contains pixels with the same value.</p>
 <div id="92" class="cell" data-execution_count="1">
@@ -1975,7 +1975,7 @@ Figure&nbsp;6.6: Examples of line and polygon rasterization
 </div>
 </div>
 </div>
-<p>The polygon layer <code>df</code> is shown in <a href="#fig-raster-to-polygons" class="quarto-xref">Figure&nbsp;<span>6.7</span></a>.</p>
+<p>The polygon layer <code>df</code> is shown in <a href="#fig-raster-to-polygons" class="quarto-xref">Figure&nbsp;<span>5.7</span></a>.</p>
 <div id="cell-fig-raster-to-polygons" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb81"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a>f, a, p <span class="op">=</span> <span class="fu">poly</span>(df.geometry; color <span class="op">=</span> df.value, strokecolor <span class="op">=</span> <span class="op">:</span>black, strokewidth <span class="op">=</span> <span class="fl">0.75</span>)</span>
 <span id="cb81-2"><a href="#cb81-2" aria-hidden="true" tabindex="-1"></a><span class="fu">Colorbar</span>(f[<span class="fl">1</span>, <span class="fl">2</span>], p)</span>
@@ -1987,7 +1987,7 @@ Figure&nbsp;6.6: Examples of line and polygon rasterization
 <img src="05-raster-vector_files/figure-html/fig-raster-to-polygons-output-1.svg" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-raster-to-polygons-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6.7: <code>grain.tif</code> converted to a polygon layer
+Figure&nbsp;5.7: <code>grain.tif</code> converted to a polygon layer
 </figcaption>
 </figure>
 </div>
@@ -1996,8 +1996,8 @@ Figure&nbsp;6.7: <code>grain.tif</code> converted to a polygon layer
 <p>As highlighted using <code>edgecolor='black'</code>, neighboring pixels sharing the same raster value are dissolved into larger polygons.</p>
 <p>One <a href="https://gis.stackexchange.com/questions/455980/vectorizing-all-pixels-as-separate-polygons-using-rasterio#answer-456251">suggestion</a> is to add unique values between <code>0</code> and <code>0.9999</code> to all pixels, convert to polygons, and then get back to the original values using <code>floor</code>.</p>
 </section>
-<section id="sec-raster-to-points" class="level3" data-number="6.5.2">
-<h3 data-number="6.5.2" class="anchored" data-anchor-id="sec-raster-to-points"><span class="header-section-number">6.5.2</span> Raster to points</h3>
+<section id="sec-raster-to-points" class="level3" data-number="5.5.2">
+<h3 data-number="5.5.2" class="anchored" data-anchor-id="sec-raster-to-points"><span class="header-section-number">5.5.2</span> Raster to points</h3>
 <p>To transform a raster to points, Rasters.jl provides the <code>Rasters.DimTable</code> constructor, which converts a raster into a lazy, table-like form. This can be converted directly to a <code>DataFrame</code>, or operated on independently.</p>
 <div id="98" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb82"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a>dt <span class="op">=</span> <span class="fu">DimTable</span>(<span class="fu">Raster</span>(<span class="st">"output/elev.tif"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -2149,7 +2149,7 @@ Figure&nbsp;6.7: <code>grain.tif</code> converted to a polygon layer
 </div>
 </div>
 </div>
-<p><a href="#fig-raster-to-points" class="quarto-xref">Figure&nbsp;<span>6.8</span></a> shows the input raster and the resulting point layer.</p>
+<p><a href="#fig-raster-to-points" class="quarto-xref">Figure&nbsp;<span>5.8</span></a> shows the input raster and the resulting point layer.</p>
 <div class="sourceCode cell-code" id="cb89"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb89-1"><a href="#cb89-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Input raster</span></span>
 <span id="cb89-2"><a href="#cb89-2" aria-hidden="true" tabindex="-1"></a>fig, ax, plt <span class="op">=</span> <span class="fu">plot</span>(src_elev)</span>
 <span id="cb89-3"><a href="#cb89-3" aria-hidden="true" tabindex="-1"></a><span class="fu">scatter!</span>(ax, df.XY; color <span class="op">=</span> df.layer1)</span>
@@ -2189,14 +2189,14 @@ Figure&nbsp;6.7: <code>grain.tif</code> converted to a polygon layer
 </div>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-raster-to-points-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6.8: Raster and point representation of <code>elev.tif</code>
+Figure&nbsp;5.8: Raster and point representation of <code>elev.tif</code>
 </figcaption>
 </figure>
 </div>
 <p>TODO: nodata pixels</p>
 </section>
-<section id="sec-raster-to-contours" class="level3" data-number="6.5.3">
-<h3 data-number="6.5.3" class="anchored" data-anchor-id="sec-raster-to-contours"><span class="header-section-number">6.5.3</span> Raster to contours</h3>
+<section id="sec-raster-to-contours" class="level3" data-number="5.5.3">
+<h3 data-number="5.5.3" class="anchored" data-anchor-id="sec-raster-to-contours"><span class="header-section-number">5.5.3</span> Raster to contours</h3>
 <p>Another common type of spatial vectorization is the creation of contour lines, representing lines of continuous height or temperatures (<em>isotherms</em>), for example. We will use a real-world digital elevation model (DEM) because the artificial raster <code>elev.tif</code> produces parallel lines (task for the reader: verify this and explain why this happens). <em>Plotting</em> contour lines is straightforward, using the <code>contour</code> or <code>contourf</code> functions in <strong>Makie</strong>.</p>
 <div id="110" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb90"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb90-1"><a href="#cb90-1" aria-hidden="true" tabindex="-1"></a>f, ax, plt <span class="op">=</span> <span class="fu">contour</span>(src_dem; levels <span class="op">=</span> <span class="fu">LinRange</span>(<span class="fl">0</span>, <span class="fl">1200</span>, <span class="fl">50</span>), color <span class="op">=</span> <span class="op">:</span>black)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -2212,9 +2212,9 @@ Figure&nbsp;6.8: Raster and point representation of <code>elev.tif</code>
 <p>It would be good to show how to use the provided GDAL executables though…</p>
 </section>
 </section>
-<section id="sec-distance-to-nearest-geometry" class="level2" data-number="6.6">
-<h2 data-number="6.6" class="anchored" data-anchor-id="sec-distance-to-nearest-geometry"><span class="header-section-number">6.6</span> Distance to nearest geometry</h2>
-<p>Calculating a raster of distances to the nearest geometry is an example of a “global” raster operation (<span class="quarto-unresolved-ref">?sec-global-operations-and-distances</span>). To demonstrate it, suppose that we need to calculate a raster representing the distance to the nearest coast in New Zealand. This example also wraps many of the concepts introduced in this chapter and in previous chapters, such as raster aggregation (<span class="quarto-unresolved-ref">?sec-raster-agg-disagg</span>), raster conversion to points (<a href="#sec-raster-to-points" class="quarto-xref"><span>Section 6.5.2</span></a>), and rasterizing points (<a href="#sec-rasterizing-points" class="quarto-xref"><span>Section 6.4.1</span></a>).</p>
+<section id="sec-distance-to-nearest-geometry" class="level2" data-number="5.6">
+<h2 data-number="5.6" class="anchored" data-anchor-id="sec-distance-to-nearest-geometry"><span class="header-section-number">5.6</span> Distance to nearest geometry</h2>
+<p>Calculating a raster of distances to the nearest geometry is an example of a “global” raster operation (<span class="quarto-unresolved-ref">?sec-global-operations-and-distances</span>). To demonstrate it, suppose that we need to calculate a raster representing the distance to the nearest coast in New Zealand. This example also wraps many of the concepts introduced in this chapter and in previous chapters, such as raster aggregation (<span class="quarto-unresolved-ref">?sec-raster-agg-disagg</span>), raster conversion to points (<a href="#sec-raster-to-points" class="quarto-xref"><span>Section 5.5.2</span></a>), and rasterizing points (<a href="#sec-rasterizing-points" class="quarto-xref"><span>Section 5.4.1</span></a>).</p>
 <p>For the coastline, we will dissolve the New Zealand administrative division polygon layer and “extract” the boundary as a <code>'MultiLineString'</code> geometry.</p>
 <div id="112" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb91"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb91-1"><a href="#cb91-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">LibGEOS</span></span>
@@ -2252,7 +2252,7 @@ Figure&nbsp;6.8: Raster and point representation of <code>elev.tif</code>
  2.10546e6  NaN          NaN             NaN          NaN</code></pre>
 </div>
 </div>
-<p>The resulting raster <code>r</code> and the lines layer <code>coastline</code> are plotted in <a href="#fig-raster-distances1" class="quarto-xref">Figure&nbsp;<span>6.9</span></a>. Note that the raster values are average elevations based on <span class="math inline">\(5 \times 5\)</span> pixels, but this is irrelevant for the subsequent calculation; the raster is going to be used as a template, and all of its values will be replaced with distances to coastline (<a href="#fig-raster-distances2" class="quarto-xref">Figure&nbsp;<span>6.10</span></a>).</p>
+<p>The resulting raster <code>r</code> and the lines layer <code>coastline</code> are plotted in <a href="#fig-raster-distances1" class="quarto-xref">Figure&nbsp;<span>5.9</span></a>. Note that the raster values are average elevations based on <span class="math inline">\(5 \times 5\)</span> pixels, but this is irrelevant for the subsequent calculation; the raster is going to be used as a template, and all of its values will be replaced with distances to coastline (<a href="#fig-raster-distances2" class="quarto-xref">Figure&nbsp;<span>5.10</span></a>).</p>
 <div id="cell-fig-raster-distances1" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb95"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb95-1"><a href="#cb95-1" aria-hidden="true" tabindex="-1"></a>fig, ax, plt <span class="op">=</span> <span class="fu">plot</span>(r)</span>
 <span id="cb95-2"><a href="#cb95-2" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, coastline; color <span class="op">=</span> <span class="op">:</span>red)</span>
@@ -2264,13 +2264,13 @@ Figure&nbsp;6.8: Raster and point representation of <code>elev.tif</code>
 <img src="05-raster-vector_files/figure-html/fig-raster-distances1-output-1.svg" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-raster-distances1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6.9: Template to calculate distance to nearest geometry (coastlines, in red)
+Figure&nbsp;5.9: Template to calculate distance to nearest geometry (coastlines, in red)
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>To calculate the actual distances, we must convert each pixel to a vector (point) geometry. For this purpose, we use the technique demonstrated in <a href="#sec-raster-to-points" class="quarto-xref"><span>Section 6.5.2</span></a>, but simply select the pixels that are not <code>missing</code>.</p>
+<p>To calculate the actual distances, we must convert each pixel to a vector (point) geometry. For this purpose, we use the technique demonstrated in <a href="#sec-raster-to-points" class="quarto-xref"><span>Section 5.5.2</span></a>, but simply select the pixels that are not <code>missing</code>.</p>
 <div id="118" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb96"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb96-1"><a href="#cb96-1" aria-hidden="true" tabindex="-1"></a>dp <span class="op">=</span> <span class="fu">DimPoints</span>(r)</span>
 <span id="cb96-2"><a href="#cb96-2" aria-hidden="true" tabindex="-1"></a>nonmissing_points <span class="op">=</span> dp[r <span class="op">.===</span> <span class="fu">missingval</span>(r)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -2326,7 +2326,7 @@ Figure&nbsp;6.9: Template to calculate distance to nearest geometry (coastlines,
  641310.2218537896</code></pre>
 </div>
 </div>
-<p>Finally, we rasterize (see <a href="#sec-rasterizing-points" class="quarto-xref"><span>Section 6.4.1</span></a>) the distances into our raster template.</p>
+<p>Finally, we rasterize (see <a href="#sec-rasterizing-points" class="quarto-xref"><span>Section 5.4.1</span></a>) the distances into our raster template.</p>
 <div id="122" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb100"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb100-1"><a href="#cb100-1" aria-hidden="true" tabindex="-1"></a>img <span class="op">=</span> Rasters.<span class="fu">rasterize</span>(</span>
 <span id="cb100-2"><a href="#cb100-2" aria-hidden="true" tabindex="-1"></a>    last,</span>
@@ -2357,7 +2357,7 @@ Figure&nbsp;6.9: Template to calculate distance to nearest geometry (coastlines,
  2.10546e6  340415.0        3.37811e5          6.38166e5       6.4131e5</code></pre>
 </div>
 </div>
-<p>The final result, a raster of distances to the nearest coastline, is shown in <a href="#fig-raster-distances2" class="quarto-xref">Figure&nbsp;<span>6.10</span></a>.</p>
+<p>The final result, a raster of distances to the nearest coastline, is shown in <a href="#fig-raster-distances2" class="quarto-xref">Figure&nbsp;<span>5.10</span></a>.</p>
 <div id="cell-fig-raster-distances2" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb102"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb102-1"><a href="#cb102-1" aria-hidden="true" tabindex="-1"></a>fig, ax, plt <span class="op">=</span> <span class="fu">plot</span>(img)</span>
 <span id="cb102-2"><a href="#cb102-2" aria-hidden="true" tabindex="-1"></a><span class="fu">lines!</span>(ax, coastline; color <span class="op">=</span> <span class="op">:</span>red)</span>
@@ -2370,7 +2370,7 @@ Figure&nbsp;6.9: Template to calculate distance to nearest geometry (coastlines,
 <img src="05-raster-vector_files/figure-html/fig-raster-distances2-output-1.svg" class="img-fluid figure-img">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-raster-distances2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6.10: Distance to nearest coastline in New Zealand
+Figure&nbsp;5.10: Distance to nearest coastline in New Zealand
 </figcaption>
 </figure>
 </div>
@@ -2805,12 +2805,12 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
       <a href="../chapters/04-geometry-operations.html" class="pagination-link" aria-label="Geometry operations">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Geometry operations</span></span>
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Geometry operations</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
       <a href="../chapters/06-reproj.html" class="pagination-link" aria-label="Reprojecting geographic data">
-        <span class="nav-page-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">Reprojecting geographic data</span></span> <i class="bi bi-arrow-right-short"></i>
+        <span class="nav-page-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Reprojecting geographic data</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>

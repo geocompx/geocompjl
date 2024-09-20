@@ -400,7 +400,7 @@ You can feel free to set this for your own work, but it is not required.</p>
 </section>
 <section id="sec-raster-cropping" class="level2" data-number="6.2">
 <h2 data-number="6.2" class="anchored" data-anchor-id="sec-raster-cropping"><span class="header-section-number">6.2</span> Raster masking and cropping</h2>
-<p>Many geographic data projects involve integrating data from many different sources, such as remote sensing images (rasters) and administrative boundaries (vectors). Often the extent of input raster datasets is larger than the area of interest. In this case, raster <em>masking</em>, <em>cropping</em>, or both, are useful for unifying the spatial extent of input data (<a href="#fig-raster-crop" class="quarto-xref">Figure&nbsp;<span>6.1</span></a> (b) and (c), and the following two examples, illustrate the difference between masking and cropping). Both operations reduce object memory use and associated computational resources for subsequent analysis steps, and may be a necessary preprocessing step before creating attractive maps involving raster data.</p>
+<p>Many geographic data projects involve integrating data from many different sources, such as remote sensing images (rasters) and administrative boundaries (vectors). Often the extent of input raster datasets is larger than the area of interest. In this case, raster <em>masking</em>, <em>cropping</em>, or both, are useful for unifying the spatial extent of input data (<a href="#fig-raster-crop" class="quarto-xref">Figure&nbsp;<span>6.1</span></a> (b) and (c), and the following two examples, illustrate the difference between masking and cropping). Both operations reduce memory use and computational demand for subsequent analysis, and may be a necessary preprocessing step before creating attractive maps involving raster data.</p>
 <p>We will use two layers to illustrate raster cropping:</p>
 <ul>
 <li>The <code>srtm.tif</code> raster representing elevation, in meters above sea level, in south-western Utah: a <strong>Rasters.jl</strong> file connection named <code>src_srtm</code> (see <a href="#fig-raster-crop" class="quarto-xref">Figure&nbsp;<span>6.1</span></a> (a))</li>
@@ -574,11 +574,11 @@ You can feel free to set this for your own work, but it is not required.</p>
 
 
 
-```epmvatj
+```fdwsjac
 masker = GI.extent(zion.geom[1])
 ```
 
-```epmvatj
+```fdwsjac
 Rasters.mask(src_srtm; with = masker)
 ```
 
@@ -592,11 +592,11 @@ Rasters.mask(src_srtm; with = masker)
 
 
 
-```epmvatj
+```fdwsjac
 # masker = GI.Extents.Extent(X = (), Y = ())
 ```
 
-```epmvatj
+```fdwsjac
 # Rasters.mask(src_srtm; with = masker)
 ```
 
@@ -623,7 +623,7 @@ Note
 <div class="sourceCode" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>out_image_mask <span class="op">=</span> Rasters.<span class="fu">mask</span>(src_srtm; with <span class="op">=</span> zion, missingval <span class="op">=</span> <span class="fl">9999</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
-<p>We can write this masked raster to file with <code>Rasters.write</code>, as usual:</p>
+<p>We can write this masked raster to file with <code>Rasters.write</code>:</p>
 <div id="20" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>Rasters.<span class="fu">write</span>(<span class="st">"output/srtm_masked.tif"</span>, out_image_mask; force <span class="op">=</span> <span class="cn">true</span></span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -955,7 +955,7 @@ This corresponds to <code>interpolate='nearest'</code> in the Python <code>raste
 </div>
 </div>
 <p>The utility of extracting heights from a linear selector is illustrated by imagining that you are planning a hike. The method demonstrated below provides an ‘elevation profile’ of the route (the line does not need to be straight), useful for estimating how long it will take by determining the cumulative elevation gain of your journey.</p>
-<p>First, we need to create a layer consisting of points along our line (<code>zion_transect</code>), at specified intervals (e.g., <code>250</code>). To do that, we need to transform the line into a projected CRS (so that we work with true distances, in <span class="math inline">\(m\)</span>), such as UTM.</p>
+<p>First, we need to create a layer consisting of points along our line (<code>zion_transect</code>), at specified intervals (e.g., <code>250</code>). To do that, we need to transform the line into a projected CRS (so that we work with true distances, in <span class="math inline">\(m\)</span>), such as <a href="https://en.wikipedia.org/wiki/Universal_Transverse_Mercator_coordinate_system">Universal Transverse Mercator</a>.</p>
 <div id="40" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb35"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>zion_transect_utm <span class="op">=</span> GO.<span class="fu">reproject</span>(zion_transect; target_crs <span class="op">=</span> GFT.<span class="fu">EPSG</span>(<span class="fl">32612</span>), source_crs <span class="op">=</span> GFT.<span class="fu">EPSG</span>(<span class="fl">4326</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="1">
@@ -1186,7 +1186,7 @@ Figure&nbsp;6.3: Extracting a raster values profile to line
 <section id="sec-extraction-to-polygons" class="level3" data-number="6.3.3">
 <h3 data-number="6.3.3" class="anchored" data-anchor-id="sec-extraction-to-polygons"><span class="header-section-number">6.3.3</span> Extraction to polygons</h3>
 <p>The final type of geographic vector object that can be used for raster extraction is polygons.<br>
-Like lines, polygons tend to return many raster values per vector geometry. For continuous rasters (<a href="#fig-raster-extract-to-polygon" class="quarto-xref">Figure&nbsp;<span>6.4</span></a> (a)), we typically want to generate summary statistics for raster values per polygon, for example to characterize a single region or to compare many regions. The generation of raster summary statistics, by polygons, is demonstrated in the code below using <code>Rasters.zonal</code>, which creates a list of summary statistics (in this case a list of length 1, since there is just one polygon).</p>
+Like lines, polygons tend to return many raster values per vector geometry. For continuous rasters (<a href="#fig-raster-extract-to-polygon" class="quarto-xref">Figure&nbsp;<span>6.4</span></a> (a)), we typically want to generate summary statistics for raster values per polygon, for example to characterize a single region or to compare many regions. The generation of raster summary statistics, by polygons, is demonstrated in the code below using <code>Rasters.zonal</code>, which creates a list of summary statistics for “zones” defined by geometry. In this case, a vector of length 1 is returned, since there is just one polygon in the <code>DataFrame</code>.</p>
 <div id="54" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb47"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Statistics</span> <span class="co"># for `mean`</span></span>
 <span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>rmean <span class="op">=</span> Rasters.<span class="fu">zonal</span>(mean, src_srtm; of <span class="op">=</span> zion)</span>
@@ -1258,7 +1258,7 @@ You can pass multiple functions to a single <code>Rasters.zonal</code> call
 </div>
 </div>
 </div>
-<p>It’s straightforward to transform the result to a DataFrame as well:</p>
+<p>We then transform the result to a <code>DataFrame</code>, which makes it easier to track and handle geometry attributes:</p>
 <div id="60" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb53"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="fu">DataFrame</span>(mean <span class="op">=</span> rmean, min <span class="op">=</span> rmin, max <span class="op">=</span> rmax)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="1">
@@ -1387,7 +1387,7 @@ Many of these may not make sense to use but they are useful to know of.</p>
 <p>Furthermore, we define how to deal with multiple values burned into the same pixel, in the first argument called <code>reducer</code>. By default, this is <code>last</code>, meaning that the last polygon to be rasterized takes precedence. However, we can pass any function that takes in an iterable and returns a single value, like <code>mean</code>, <code>minimum</code>, <code>maximum</code>, <code>std</code>, <code>median</code>, <code>mode</code>, <code>sum</code>, <code>prod</code>, etc. Many of these may not make sense to use but they are useful to know of.</p>
 <p>Finally, we can set the <code>fill</code> value, which is the value that “unaffected” pixels get, with <code>fill=0</code> being the default.</p>
 <p>How the <code>Rasters.rasterize</code> function works with all of these various parameters will be made clear in the next examples.</p>
-<p>The geographic resolution of the “template” raster has a major impact on the results: if it is too low (cell size is too large), the result may miss the full geographic variability of the vector data; if it is too high, computational times may be excessive. There are no simple rules to follow when deciding an appropriate geographic resolution, which is heavily dependent on the intended use of the results. Often the target resolution is imposed on the user, for example when the output of rasterization needs to be aligned to an existing raster.</p>
+<p>The spatial resolution (area of each “pixel”) of the “template” raster has a major impact on the results: if it is too low (cell size is too large), the result may miss the full geographic variability of the vector data; if it is too high, computational times may be excessive. There are no simple rules to follow when deciding an appropriate geographic resolution, which is heavily dependent on the intended use of the results. Often the target resolution is imposed on the user, for example when the output of rasterization needs to be aligned to an existing raster.</p>
 <p>Depending on the input data, rasterization typically takes one of two forms which we demonstrate next:</p>
 <ul>
 <li>in <em>point</em> rasterization (<a href="#sec-rasterizing-points" class="quarto-xref"><span>Section 6.4.1</span></a>), we typically choose how to treat multiple points: either to summarize presence/absence, point count, or summed attribute values (<a href="#fig-rasterize-points" class="quarto-xref">Figure&nbsp;<span>6.5</span></a>)</li>

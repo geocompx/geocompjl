@@ -504,8 +504,8 @@ window.Quarto = {
 </div>
 <p>Conceptually, a raster is an array combined with georeferencing information, whereas the latter comprises:</p>
 <ul>
-<li>A transformation matrix, containing the origin and resolution, thus linking pixel indices with coordinates in a particular coordinate system</li>
-<li>A CRS definition, specifying the association of that coordinate system with the surface of the earth (optional)</li>
+<li>Lookup vectors for the axes, encoding the spatial coordinates for each grid cell. These take the form of the <code>X</code> and <code>Y</code> dimensions in the raster that you’ll see below.</li>
+<li>A <a href="https://en.wikipedia.org/wiki/Spatial_reference_system">coordinate reference system</a> (CRS) definition, specifying the association of the raster’s coordinates with the surface of the earth.</li>
 </ul>
 <p>Therefore, to create a raster, we first need to have an array with the values, and then supplement it with the georeferencing information. Let’s create the arrays <code>elev</code> and <code>grain</code>. The <code>elev</code> array is a <span class="math inline">\(6 \times 6\)</span> array with sequential values from <code>1</code> to <code>36</code>. It can be created as follows using base Julia functions.</p>
 <div id="12" class="cell" data-execution_count="1">
@@ -542,7 +542,7 @@ window.Quarto = {
 </div>
 </div>
 <p>Note that in both cases, we are using the <code>uint8</code> (unsigned integer in 8 bits, i.e., <code>0-255</code>) data type, which is sufficient to represent all possible values of the given rasters (see <span class="quarto-unresolved-ref">?tbl-numpy-data-types</span>). This is the recommended approach for a minimal memory footprint.</p>
-<p>What is missing now is the georeferencing information (see <span class="quarto-unresolved-ref">?sec-using-rasterio</span>). In this case, since the rasters are arbitrary, we also set up arbitrary dimension lookups for the <code>x</code> and <code>y</code> axes, where:</p>
+<p>What is missing now is the georeferencing information (see <span class="quarto-unresolved-ref">?sec-using-rasters-jl</span>). In this case, since the rasters are arbitrary, we also set up arbitrary dimension lookups for the <code>x</code> and <code>y</code> axes, where:</p>
 <ul>
 <li>The origin (<span class="math inline">\(x_{min}\)</span>, <span class="math inline">\(y_{max}\)</span>) is at <code>-1.5,1.5</code></li>
 <li>The raster resolution (<span class="math inline">\(delta_{x}\)</span>, <span class="math inline">\(delta_{y}\)</span>) is <code>0.5,-0.5</code></li>
@@ -555,18 +555,21 @@ window.Quarto = {
 <pre><code>Y 1.0:-0.5:-1.5</code></pre>
 </div>
 </div>
-<p>We can now construct a <code>Raster</code> object, from the <code>elev</code> array and the dimensions <code>new_x</code> and <code>new_y</code>:</p>
+<p>We can now construct a <code>Raster</code> object, from the <code>elev</code> array and the dimensions <code>new_x</code> and <code>new_y</code>.<br>
+We assign to it a CRS of <code>EPSG:4326</code> (which encodes that the coordinate system is longitude/latitude on the “standard” WGS84 definition of the Earth’s curvature).</p>
+<p>Here, we use the <code>GFT.EPSG(code)</code> constructor to create an object that encodes a reference code under the <a href="https://epsg.org">European Petroleum Survey Group</a> (EPSG) authority’s database of coordinate reference systems.</p>
 <div id="18" class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>elev_raster <span class="op">=</span> <span class="fu">Raster</span>(elev, (new_x, new_y))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>elev_raster <span class="op">=</span> <span class="fu">Raster</span>(elev, (new_x, new_y); crs <span class="op">=</span> GFT.<span class="fu">EPSG</span>(<span class="fl">4326</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="1">
 <pre><code>╭─────────────────────╮
 │ 6×6 Raster{UInt8,2} │
-├─────────────────────┴────────────────────────────────────── dims ┐
-  ↓ X Sampled{Float64} -1.5:0.5:1.0 ForwardOrdered Regular Points,
-  → Y Sampled{Float64} 1.0:-0.5:-1.5 ReverseOrdered Regular Points
-├────────────────────────────────────────────────────────── raster ┤
+├─────────────────────┴──────────────────────────────────────── dims ┐
+  ↓ X Projected{Float64} -1.5:0.5:1.0 ForwardOrdered Regular Points,
+  → Y Projected{Float64} 1.0:-0.5:-1.5 ReverseOrdered Regular Points
+├──────────────────────────────────────────────────────────── raster ┤
   extent: Extent(X = (-1.5, 1.0), Y = (-1.5, 1.0))
-└──────────────────────────────────────────────────────────────────┘
+  crs: EPSG:4326
+└────────────────────────────────────────────────────────────────────┘
   ↓ →     1.0     0.5     0.0    -0.5    -1.0    -1.5
  -1.5  0x01    0x07    0x0d    0x13    0x19    0x1f
  -1.0  0x02    0x08    0x0e    0x14    0x1a    0x20
@@ -576,7 +579,7 @@ window.Quarto = {
   1.0  0x06    0x0c    0x12    0x18    0x1e    0x24</code></pre>
 </div>
 </div>
-<p>The raster can now be plotted in its coordinate system, passing the array <code>elev</code> along with the transformation matrix <code>new_transform</code> to <code>rasterio.plot.show</code> (<a href="#fig-rasterio-plot-elev" class="quarto-xref">Figure&nbsp;<span>2.1</span></a>). The raster can now be plotted in its coordinate system, passing the array <code>elev</code> along with the transformation matrix <code>new_transform</code> to <code>rasterio.plot.show</code> (<a href="#fig-rasterio-plot-elev" class="quarto-xref">Figure&nbsp;<span>2.1</span></a>).</p>
+<p>The raster can now be plotted in its coordinate system, passing the array <code>elev</code> along with the transformation matrix <code>new_transform</code> to <code>rasterio.plot.show</code> (<a href="#fig-rasterio-plot-elev" class="quarto-xref">Figure&nbsp;<span>2.1</span></a>).</p>
 <div id="cell-fig-rasterio-plot-elev" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(elev_raster)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="1">
@@ -594,7 +597,7 @@ Figure&nbsp;2.1: Plot of the <code>elev</code> raster, a minimal example of a co
 </div>
 <p>The <code>grain</code> raster can be plotted the same way, as we are going to use the same transformation matrix for it as well (<a href="#fig-rasterio-plot-grain" class="quarto-xref">Figure&nbsp;<span>2.2</span></a>).</p>
 <div id="cell-fig-rasterio-plot-grain" class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">Raster</span>(grain, (new_x, new_y)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">Raster</span>(grain, (new_x, new_y); crs <span class="op">=</span> GFT.<span class="fu">EPSG</span>(<span class="fl">4326</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="1">
 <div id="fig-rasterio-plot-grain" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -620,7 +623,7 @@ Figure&nbsp;2.2: Plot of the <code>grain</code> raster, a minimal example of a c
 </ol>
 <p>Don’t worry if the code below is unclear; the concepts related to writing raster data to file will be explained in <span class="quarto-unresolved-ref">?sec-data-output-raster</span>. For now, for completeness, and also to use these rasters in subsequent chapters without having to re-create them from scratch, we just provide the code for exporting the <code>elev</code> and <code>grain</code> rasters into the <code>output</code> directory. In the case of <code>elev</code>, we do it as follows with the <code>Rasters.write</code> functions and methods of the <strong>Rasters.jl</strong> package.</p>
 <div id="24" class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write</span>(<span class="st">"output/elev.tif"</span>, Rasters.<span class="fu">setcrs</span>(elev_raster, GFT.<span class="fu">EPSG</span>(<span class="fl">4326</span>)); force <span class="op">=</span> <span class="cn">true</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write</span>(<span class="st">"output/elev.tif"</span>, elev_raster; force <span class="op">=</span> <span class="cn">true</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="1">
 <pre><code>"output/elev.tif"</code></pre>
 </div>

@@ -130,7 +130,7 @@ For now, for completeness, and also to use these rasters in subsequent chapters 
 In the case of `elev`, we do it as follows with the `Rasters.write` functions and methods of the **Rasters.jl** package.
 
 ```{julia}
-write("output/elev.tif", elev_raster); force = true)
+write("output/elev.tif", elev_raster; force = true)
 ```
 
 Note that the CRS we (arbitrarily) set for the `elev` raster is WGS84, defined using `crs=4326` according to the EPSG code.

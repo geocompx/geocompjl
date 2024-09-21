@@ -35,8 +35,9 @@ tanzania = filter!(
 )
 tanzania_buf = GO.reproject(
   GO.buffer(
-    GO.reproject(tanzania, GFT.EPSG(32736)), 
+    GO.reproject(tanzania, GI.crs(tanzania), GFT.EPSG(32736)), 
     50000), 
+  GFT.EPSG(32736),
   GFT.EPSG(4326)
 )
 tanzania_neigh = filter!(
@@ -92,7 +93,7 @@ This is the focus of the field of cartography, and beyond the scope of this book
 A vector layer can be displayed by plotting its geometry.  
 A minimal example of a vector layer map is obtained using `plot` with nothing but the defaults (@fig-vector-minimal).
 
-```julia
+```{julia}
 #| label: fig-vector-minimal
 #| fig-cap: Minimal example of a static vector layer plot with `.plot`
 plot(nz.geom)
@@ -101,7 +102,7 @@ plot(nz.geom)
 A `Raster`, or any Julia matrix for that matter, cna be displayed using any 2D plotting function, like `heatmap` or `surface`.
 @fig-raster-minimal shows a minimal example of a static raster map.
 
-```julia
+```{julia}
 #| label: fig-raster-minimal
 #| fig-cap: Minimal example of a static raster plot with `heatmap`
 heatmap(nz_elev)
@@ -111,7 +112,7 @@ heatmap(nz_elev)
 
 The most useful visual properties of the geometries, that can be specified in plotting functions, include `color`, `strokecolor`, and `markersize` (for points) (@fig-basic-plot).
 
-```{python}
+```{julia}
 #| label: fig-basic-plot
 #| fig-cap: Setting `color` and `edgecolor` in static maps of a vector layer
 #| fig-subcap: 
@@ -174,7 +175,7 @@ fig
 ```{julia}
 #| fig-cap: Symbology in a static map created with AlgebraOfGraphics.jl
 using AlgebraOfGraphics
-data(nz) * mapping(:geometry; color = :Median_income) * visual(Poly) |> draw
+data(nz) * mapping(:geom; color = :Median_income) * visual(Poly) |> draw
 ```
 :::
 

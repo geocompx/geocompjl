@@ -192,3 +192,53 @@ catch e
     rethrow(e)
 end
 
+
+
+function post_github_status(type::S, deploydocs_repo::S, sha::S, subfolder=nothing) where S <: String
+    try
+        Sys.which("curl") === nothing && return
+        ## Extract owner and repository name
+        m = match(r"^github.com\/(.+?)\/(.+?)(.git)?$", deploydocs_repo)
+        m === nothing && return
+        owner = String(m.captures[1])
+        repo = String(m.captures[2])
+
+        ## Need an access token for this
+        auth = get(ENV, "GITHUB_TOKEN", nothing)
+        auth === nothing && return
+        # construct the curl call
+        cmd = `curl -sX POST`
+        push!(cmd.exec, "-H", "Authorization: token $(auth)")
+        push!(cmd.exec, "-H", "User-Agent: Documenter.jl")
+        push!(cmd.exec, "-H", "Content-Type: application/json")
+        json = Dict{String,Any}("context" => "documenter/deploy", "state"=>type)
+        if type == "pending"
+            json["description"] = "Documentation build in progress"
+        elseif type == "success"
+            json["description"] = "Documentation build succeeded"
+            target_url = "https://jl.geocompx.org/"
+            if subfolder !== nothing || normpath(subfolder) !== "."
+                target_url *= "$(subfolder)/"
+            end
+            json["target_url"] = target_url
+        elseif type == "error"
+            json["description"] = "Documentation build errored"
+        elseif type == "failure"
+            json["description"] = "Documentation build failed"
+        else
+            error("unsupported type: $type")
+        end
+        push!(cmd.exec, "-d", sprint(JSON.print, json))
+        push!(cmd.exec, "https://api.github.com/repos/$(owner)/$(repo)/statuses/$(sha)")
+        # Run the command (silently)
+        io = IOBuffer()
+        res = run(pipeline(cmd; stdout=io, stderr=devnull))
+        @debug "Response of curl POST request" response=String(take!(io))
+    catch
+        @debug "Failed to post status"
+    end
+    return nothing
+end
+
+post_github_status("success", "https://github.com/geocompx/geocompjl", sha, subfolder)
+

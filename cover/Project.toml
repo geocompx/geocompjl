@@ -1,0 +1,4 @@
+[deps]
+ArchGDAL = "c9ce4bd3-c3d5-55b8-8973-c0e20141b8c3"
+GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
+Rasters = "a3a2b9e3-a471-40c9-b274-f788e487c689"

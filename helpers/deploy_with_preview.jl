@@ -240,5 +240,5 @@ function post_github_status(type::S, deploydocs_repo::S, sha::S, subfolder=nothi
     return nothing
 end
 
-post_github_status("success", "https://github.com/geocompx/geocompjl", sha, subfolder)
+post_github_status("success", "https://github.com/geocompx/geocompjl", string(sha), string(subfolder))
 

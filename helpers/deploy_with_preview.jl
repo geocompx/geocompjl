@@ -16,6 +16,16 @@ cfg = (; github_repository, github_event_name, github_ref)
 
 io = stdout
 
+
+# Here we know that the site builds to `docs/`, 
+# but you could customize this directory in the future.
+target_dir = abspath("./docs") # builddir
+upstream = "https://github.com/geocompx/geocompjl.git"
+branch = "gh-pages"
+devbranch = "main"
+
+
+
 if cfg.github_event_name == "pull_request"
     build_type = :preview
 elseif occursin(r"^refs\/tags\/(.*)$", cfg.github_ref)
@@ -65,14 +75,6 @@ if !all_ok
     println("$(marker(false)) Deployment failed.")
     exit(0)
 end
-
-# Here we know that the site builds to `docs/`, 
-# but you could customize this directory in the future.
-target_dir = abspath("./docs") # builddir
-upstream = "https://github.com/geocompx/geocompjl.git"
-branch = "gh-pages"
-devbranch = "main"
-
 
 sha = cd(dirname(@__DIR__)) do
     # Find the commit sha.

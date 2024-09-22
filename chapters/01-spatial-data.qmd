@@ -6,6 +6,8 @@ project:
 
 # Geographic data in Julia {#sec-spatial-class}
 
+TEST4
+
 ```{julia}
 using Pkg
 Pkg.status()

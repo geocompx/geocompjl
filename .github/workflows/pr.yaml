@@ -50,7 +50,7 @@ jobs:
           NETLIFY_SITE_ID: e18690e5-215e-4584-b0f1-963bc99a10d0
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         with:
-          publish-dir: './_site'
+          publish-dir: './docs'
           production-deploy: false
           github-token: ${{ secrets.GITHUB_TOKEN }}
           deploy-message:

@@ -45,7 +45,7 @@ jobs:
           
       - name: Deploy Preview to Netlify as preview
         id: netlify-deploy
-        uses: nwtgck/actions-netlify@v2
+        uses: nwtgck/actions-netlify@v3
         env:
           NETLIFY_SITE_ID: e18690e5-215e-4584-b0f1-963bc99a10d0
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
@@ -53,9 +53,9 @@ jobs:
           publish-dir: './docs'
           production-deploy: false
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message:
-            'Deploy from GHA: ${{ github.event.pull_request.title || github.event.head_commit.message }} (${{ github.sha }})'
-          alias: deploy-preview-${{ github.event.number }}
+          deploy-message: |
+            Deploy from GHA: ${{ github.event.pull_request.title || format('manual from PR {0}', github.event.issue.number) }}
+          alias: deploy-preview-${{ github.event.pull_request.number || github.event.issue.number }}
           # these all default to 'true'
           enable-pull-request-comment: true
           enable-commit-comment: false

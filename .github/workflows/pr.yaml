@@ -1,11 +1,11 @@
 on:
   workflow_dispatch:
-  push:
+  pull_request:
     branches:
       [main]
-name: Quarto Publish
+name: Quarto PR Publish
 jobs:
-  quarto:
+  bookdown:
     name: GH-Pages
     runs-on: ubuntu-latest
     permissions:
@@ -38,8 +38,27 @@ jobs:
         env:
           QUARTO_JULIA_PROJECT: "@quarto"
 
-      - name: Render and Publish 
-        uses: quarto-dev/quarto-actions/publish@v2
-        with:
-          target: netlify
+      - name: Render 
+        uses: quarto-dev/quarto-actions/render@v2
+        with: 
+          to: html
+          
+      - name: Deploy Preview to Netlify as preview
+        id: netlify-deploy
+        uses: nwtgck/actions-netlify@v2
+        env:
+          NETLIFY_SITE_ID: e18690e5-215e-4584-b0f1-963bc99a10d0
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        with:
+          publish-dir: './_site'
+          production-deploy: false
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message:
+            'Deploy from GHA: ${{ github.event.pull_request.title || github.event.head_commit.message }} (${{ github.sha }})'
+          alias: deploy-preview-${{ github.event.number }}
+          # these all default to 'true'
+          enable-pull-request-comment: true
+          enable-commit-comment: false
+          enable-commit-status: true
+          overwrites-pull-request-comment: false
+        timeout-minutes: 1

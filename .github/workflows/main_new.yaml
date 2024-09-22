@@ -1,3 +1,10 @@
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      [main]
+  pull_request:
+name: Quarto Publish
 jobs:
   bookdown:
     name: GH-Pages

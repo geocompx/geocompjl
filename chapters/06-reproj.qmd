@@ -1,5 +1,7 @@
 ---
 engine: julia
+project:
+  execute-dir: project
 ---
 
 # Reprojecting geographic data {#sec-reproj-geo-data}

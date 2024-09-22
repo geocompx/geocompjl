@@ -1,6 +1,7 @@
 project:
   type: book
   output-dir: docs
+  execute-dir: project
 
 book:
   title: "Geocomputation with Julia"
@@ -18,12 +19,12 @@ book:
   # favicon: favicon-32x32.png
   chapters:
     - index.qmd
-    - chapters/preface.qmd
+    #- chapters/preface.qmd
     - chapters/01-spatial-data.qmd
     - chapters/02-attribute-operations.qmd
     - chapters/03-spatial-operations.qmd
     - chapters/04-geometry-operations.qmd
-    - chapters/05-raster-vector.qmd
+    #- chapters/05-raster-vector.qmd
     - chapters/06-reproj.qmd
     - chapters/07-read-write.qmd
     - chapters/08-mapping.qmd

@@ -1,0 +1,68 @@
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      [main]
+name: Quarto PR Publish
+jobs:
+  bookdown:
+    name: GH-Pages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      statuses: write
+      pull-requests: write
+      deployments: write
+    steps:
+      - uses: actions/checkout@v3
+      - uses: julia-actions/setup-julia@v2
+      - uses: julia-actions/cache@v2
+      - name: Set up custom Julia dependencies
+        run: |
+          using Pkg
+          Pkg.activate("quarto"; shared = true)
+          # TODO: QuartoNotebookRunner does not support execute-dir yet, but this PR does.
+          Pkg.add(url = "https://github.com/asinghvi17/QuartoNotebookRunner.jl", rev = "as/execute-dir")
+          Pkg.instantiate()
+          Pkg.activate(".")
+          Pkg.add([
+            # TODO: DimensionalData v0.28 is not compatible with Rasters latest version,
+            # and has Makie fixes that we need for the book, otherwise plotting errors out.
+            # These can be removed after Rasters.jl's new breaking version.
+            PackageSpec(url = "https://github.com/asinghvi17/Rasters.jl", rev = "as/dd28"),
+            PackageSpec(url = "https://github.com/rafaqz/DimensionalData.jl", rev = "main"),
+          ])
+        shell: julia {0}
+      - uses: julia-actions/julia-buildpkg@v1
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+        env:
+          QUARTO_JULIA_PROJECT: "@quarto"
+
+      - name: Render 
+        uses: quarto-dev/quarto-actions/render@v2
+        with: 
+          to: html
+        env:
+          QUARTO_JULIA_PROJECT: "@quarto"
+
+      - name: Deploy Preview to Netlify as preview
+        id: netlify-deploy
+        uses: nwtgck/actions-netlify@v3
+        env:
+          NETLIFY_SITE_ID: e18690e5-215e-4584-b0f1-963bc99a10d0
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        with:
+          publish-dir: './docs'
+          production-deploy: false
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          deploy-message: |
+            Deploy from GHA: ${{ github.event.pull_request.title || format('manual from PR {0}', github.event.issue.number) }}
+          alias: deploy-preview-${{ github.event.pull_request.number || github.event.issue.number }}
+          # these all default to 'true'
+          enable-pull-request-comment: true
+          enable-commit-comment: false
+          enable-commit-status: true
+          overwrites-pull-request-comment: false
+        timeout-minutes: 1

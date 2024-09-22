@@ -44,7 +44,9 @@ jobs:
         uses: quarto-dev/quarto-actions/render@v2
         with: 
           to: html
-          
+        env:
+          QUARTO_JULIA_PROJECT: "@quarto"
+
       - name: Deploy Preview to Netlify as preview
         id: netlify-deploy
         uses: nwtgck/actions-netlify@v3

@@ -17,7 +17,9 @@ using GeoMakie
 using Tyler
 using NaturalEarth # Natural Earth vector data
 using GeoDataFrames, ArchGDAL
-import GeoInterface as GI, GeometryOps as GO, GeoFormatTypes as GFT
+import GeoInterface as GI
+import GeometryOps as GO
+import GeoFormatTypes as GFT
 import LibGEOS # to activate some capabilities of GeometryOps
 using FlexiJoins # dataframe joins
 using Rasters
@@ -33,6 +35,12 @@ tanzania = filter!(
   :name_long => ==("Tanzania"), 
   GeoDataFrames.read("data/world.gpkg")
 )
+```
+
+From the data loaded above, we can create some more geometries.
+First, we create a buffer around the `tanzania` polygon.  In order to create this buffer, we need to be in a Cartesian ("planar") CRS, and the Tanzania polygon is in lat/long space (which is "geographic" or "ellipsoidal").  
+Thus, we first reproject the polygon into a Cartesian CRS, create the buffer, and then reproject back into lat/long space.
+```{julia}
 tanzania_buf = GO.reproject(
   GO.buffer(
     GO.reproject(tanzania, GI.crs(tanzania), GFT.EPSG(32736)), 
@@ -40,6 +48,9 @@ tanzania_buf = GO.reproject(
   GFT.EPSG(32736),
   GFT.EPSG(4326)
 )
+```
+We can also create a dataframe of all of Tanzania's neighbours:
+```{julia}
 tanzania_neigh = filter!(
   :geom => x -> GO.intersects(x, only(tanzania_buf.geom)), 
   GeoDataFrames.read("data/world.gpkg")
@@ -180,4 +191,6 @@ data(nz) * mapping(:geom; color = :Median_income) * visual(Poly) |> draw
 :::
 
 The default color map which you see in @fig-plot-symbology is `colormap=:viridis`.
-The `colormap` argument can be used to specify one of countless color scales.
+The `colormap` argument can be used to specify one of countless color schemes - you can manually construct your own, or use one of the [many available color schemes in Makie](https://docs.makie.org/stable/explanations/colors).
+
+

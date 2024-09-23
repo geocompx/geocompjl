@@ -11,6 +11,8 @@ jobs:
     permissions:
       contents: write
       statuses: write
+    env:
+      QUARTO_JULIA_PROJECT: "@quarto"
     steps:
       - uses: actions/checkout@v3
       - uses: julia-actions/setup-julia@v2

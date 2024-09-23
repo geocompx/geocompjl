@@ -20,7 +20,7 @@ mkpath("output")
 ## Introduction
 ```{julia}
 using GeoDataFrames
-df = GeoDataFrames.read("../data/world.gpkg")
+df = GeoDataFrames.read("data/world.gpkg")
 ```
 
 ```{julia}

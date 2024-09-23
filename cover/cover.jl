@@ -78,3 +78,33 @@ sm.diffuse[] = oldspec
 
 
 
+
+#=
+
+## Title
+
+The title is created in the same way as the Julia logo is.   
+
+We take the font "Tamil MN Bold" at 48 pt, and 
+plot it in data space in an axis.  Then, we can 
+compress the axis by setting its aspect ratio,
+thus compressing the text as well!
+=#
+
+title_ax = Axis(
+    fig[0, 1];
+    backgroundcolor = :transparent,
+)
+hidedecorations!(title_ax)
+# hidespines!(title_ax)
+
+title_text = text!(
+    title_ax, 
+    "Geocomputation\nwith", 
+    fontsize=48, font=joinpath(@__DIR__, "TamilMNBold.ttf"), 
+    align=(:left, :center), 
+    space=:data, 
+)
+
+tightlimits!(title_ax)
+axis.aspect[] = 48/40

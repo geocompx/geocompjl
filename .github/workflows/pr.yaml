@@ -13,6 +13,8 @@ jobs:
       statuses: write
       pull-requests: write
       deployments: write
+    env:
+      QUARTO_JULIA_PROJECT: "@quarto"
     steps:
       - uses: actions/checkout@v3
       - uses: julia-actions/setup-julia@v2

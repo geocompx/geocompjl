@@ -1,4 +1,4 @@
-using GLMakie
+using GLMakie, MakieTeX, Colors
 using Rasters
 using ArchGDAL
 dir = @__DIR__
@@ -17,13 +17,64 @@ cmap = :viridis
 
 set_theme!(theme_dark())
 # backgroundcolor is julia purple with blacks set to 80% to match Python cover
-fig = Figure(size=(2400, 2400), fontsize=22, backgroundcolor="#371135")
-ax = Axis3(fig[1, 1], aspect=:equal, perspectiveness=1, elevation=π / 5,
-    zgridcolor=:white, ygridcolor=:white, xgridcolor=:white, xlabel="Longitude", ylabel="Latitude")
+fig = Figure(
+    size=(500, 750) .* 2, 
+    fontsize=22, 
+    backgroundcolor=colorant"#371135"
+);
+ax = Axis3(
+    fig[1, 1], 
+    aspect=:equal, perspectiveness=1, 
+    elevation=π / 5,
+    zgridcolor=:white, ygridcolor=:white, xgridcolor=:white, 
+    xlabel="Longitude", ylabel="Latitude"
+)
+
 xlims!(ax, extrema(x)...)
 ylims!(ax, extrema(y)...)
 zlims!(ax, 0, zmax + 100)
-sm = surface!(ax, x, y, dem; colormap=cmap, colorrange=(zmin, zmax))
-contour!(ax, x, y, dem; levels=100, linewidth=0.1, color=:white,
-    colorrange=(zmin, zmax), transparency=true)
-save("test.png", ax.scene; px_per_unit=2)
+sp = surface!(
+    ax, dem; 
+    colormap=cmap, colorrange=(zmin, zmax),
+)
+# Fiddle with lighting in the surface plot
+sp.diffuse[] = 0.9
+# sp.shading[] = MultiLightShading
+sp.shading[] = NoShading
+
+# Construct contour lines
+cp = contour!(
+    ax, dem; 
+    levels=100, linewidth=0.1, 
+    color=:white, colorrange=(zmin, zmax), 
+    transparency=true
+)
+
+# This makes sure that the screen is reconstituted
+# and all rendering options are applied correctly.
+GLMakie.closeall() # close any open screen
+
+save("test.png", fig; px_per_unit=2)
+
+
+# Test rendering parameters
+oldspec = sm.specular[]
+record(fig, "specular.mp4", LinRange(0, 1, 100)) do s
+    sm.specular[] = s
+end
+sm.specular[] = oldspec
+
+oldspec = sm.shininess[]
+record(fig, "shininess.mp4", LinRange(1, 100, 100)) do s
+    sm.shininess[] = s
+end
+sm.shininess[] = oldspec
+
+oldspec = sm.diffuse[]
+record(fig, "diffuse.mp4", LinRange(0, 1, 100)) do s
+    sm.diffuse[] = s
+end
+sm.diffuse[] = oldspec
+
+
+

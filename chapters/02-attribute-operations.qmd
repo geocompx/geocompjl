@@ -135,7 +135,7 @@ Notice that the first column, `:geom`, is composed of `IGeometry{wkbMultiPolygon
 
 We can also get some geospatial information - `GI.geometrycolumns(world)` returns `{julia} GI.geometrycolumns(world)`, and `GI.crs(world)` returns `{julia} GI.crs(world)`.
 
-## Dropping geometries
+### Dropping geometries
 
 We can drop the geometry column by subsetting the `DataFrame`:
 
@@ -150,7 +150,24 @@ Becoming skilled at geographic attribute data manipulation means becoming skille
 
 ### Vector attribute subsetting
 
-There are multiple ways to subset data in Julia.  First, and probably most simply, we can index into the DataFrame object using a few kinds of selectors.  Rows are always selected first, and then columns go in the second position.  We can select the first 5 rows of the `:pop_est` column like so:
+There are multiple ways to subset data in Julia.  
+First, and probably most simply, we can index into the DataFrame object using a few kinds of selectors.  This can select rows and columns.  
+
+Indices placed inside square brackets placed directly after a data frame object name specify the elements to keep.
+
+Rows are always selected first, and then columns go in the second position.  We can select the first 5 rows of the `:pop_est` column like so:
+
+::: {.callout-note collapse="true"}
+
+## Recap: indexing in Julia
+
+Indexing in Julia is 1-based, like R, and unlike Python which is 0-based.
+
+It's performed using the `[inds...]` operator.  The `:` operator is used to select all elements in that dimension, and you can select a range using `start:stop`. 
+You can also pass vectors of indices or boolean values to select specific elements.
+
+In DataFrames.jl, you can construct a view over all rows by using the `!` operator, like `world[!, :pop]` (in place of `world[:, :pop]`).  This syntax is also needed when modify the entire column, or creating a new column.
+:::
 
 ```{julia}
 world[1:5, :pop]
@@ -164,4 +181,166 @@ world[5:end, [:pop, :continent]]
 
 and note that this returns a new DataFrame with only the selected columns.
 
-We can also use the `select` function to subset by some predicate.  Let's select all countries whose populations are greater than 30 million, but less than 1 billion:
+We can also drop all missing values in a column using the `dropmissing` function:
+
+```{julia}
+world_with_pop = dropmissing(world, :pop)
+```
+
+There is also a mutating version of `dropmissing`, called `dropmissing!`, which modifies the input in place.
+
+We can also subset by a boolean vector, computed on some predicate.  Let's select all countries whose populations are greater than 30 million, but less than 1 billion.
+```{julia}
+countries_to_select = 30_000_000 .< world_with_pop.pop .< 1_000_000_000
+```
+
+```{julia}
+world_with_pop[countries_to_select, :]
+```
+
+A more concise way to achieve the same result is `world_with_pop[30_000_000 .< world_with_pop.pop .< 1_000_000_000, :]`.
+
+
+Here's a small exercise: guess the number of rows and columns in the `DataFrame` objects returned by each of the following commands, then check your answer by executing the commands in Julia.
+
+```{julia}
+#| eval: false
+world[1:6, ]    # subset rows by position
+world[:, 1:3]    # subset columns by position
+world[1:6, 1:3] # subset rows and columns by position
+world[:, [:name_long, :pop]] # columns by name
+world[:, [true, true, false, false, false, false, false, true, true, false, false]] # by logical indices
+world[:, 888] # an index representing a non-existent column
+```
+
+
+
+There are ways to achieve this result using all of the DataFrame manipulation packages mentioned above.
+
+
+::: {.panel-tabset}
+
+## DataFrames.jl
+
+DataFrames.jl also defines a `subset` function, which is another way to achieve this result:
+
+```{julia}
+subset(world_with_pop, :pop => x -> !ismissing(x) && 30_000_000 < x < 1_000_000_000)
+```
+
+## DataFramesMeta.jl
+
+DataFramesMeta.jl provides a convenient syntax for subsetting DataFrames using a DSL that closely resembles the tidyverse.
+
+```{julia}
+using DataFramesMeta
+
+@chain world_with_pop begin
+    @subset @byrow (!ismissing(:pop) && 30_000_000 < :pop < 1_000_000_000)
+    select(:name_long, :pop)
+end
+``` 
+
+## TidierData.jl
+
+TidierData.jl provides a convenient syntax for subsetting DataFrames using a DSL that closely resembles the tidyverse.  
+
+```{julia}
+#| eval: false
+using TidierData
+
+@chain world_with_pop begin
+    @subset @byrow (!ismissing(:pop) && 30_000_000 < :pop < 1_000_000_000)
+    select(:name_long, :pop)
+end
+```
+
+## Query.jl
+
+Query.jl provides a convenient syntax for subsetting DataFrames using a DSL that closely resembles the tidyverse.  
+
+```{julia}
+using Query
+
+@from row in world_with_pop |>
+@where !ismissing(row.pop) && 30_000_000 < row.pop < 1_000_000_000 |>
+@select {name_long = row.name_long, pop = row.pop} |>
+DataFrame
+
+```
+
+:::
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Manipulating raster objects
+
+In contrast to the vector data model underlying simple features (which represents points, lines and polygons as discrete entities in space), raster data represent continuous surfaces.
+This section shows how raster objects work by creating them *from scratch*, building on Section \@ref(an-introduction-to-terra).
+Because of their unique structure, subsetting and other operations on raster datasets work in a different way, as demonstrated in Section \@ref(raster-subsetting).
+
+
+The following code recreates the raster dataset used in Section \@ref(raster-classes), the result of which is illustrated in Figure \@ref(fig:cont-raster).
+This demonstrates how the `Raster()` constructor works to create an example raster named `elev` (representing elevations).
+
+```{julia}
+vals = reshape(1:36, 6, 6)
+elev = Raster(vals, (X(LinRange(-1.5, 1.5, 6)), Y(LinRange(-1.5, 1.5, 6))))
+```
+
+
+The result is a raster object with 6 rows and 6 columns, and spatial lookup vectors for the dimensions `X` (horizontal) and `Y` (vertical).
+The `vals` argument sets the values that each cell contains: numeric data ranging from 1 to 36 in this case.
+
+
+Raster objects can also contain categorical values, like strings or even values corresponding to categories.
+The following code creates the raster datasets shown in Figure \@ref(fig:cont-raster):
+
+```{julia}
+# First, construct a categorical array
+using CategoricalArrays
+
+grain_order = ["clay", "silt", "sand"]
+grain_char = rand(grain_order, 6, 6)
+grain_fact = CategoricalArray(grain_char, levels = grain_order)
+
+# Then, wrap the categorical array in a Raster object
+grain = Raster(grain_fact, (X(LinRange(-1.5, 1.5, 6)), Y(LinRange(-1.5, 1.5, 6))))
+```
+
+```{julia}
+elev = Raster("raster/elev.tif")
+grain = Raster("raster/grain.tif")
+```
+
+This `CategoricalArray` is stored in two parts: a matrix of integer codes, and a dictionary of levels, that maps the integer codes to the string values.
+We can retrieve and modify the levels of a `CategoricalArray` using the `levels()` function.
+

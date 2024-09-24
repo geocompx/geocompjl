@@ -164,9 +164,9 @@ Rows are always selected first, and then columns go in the second position.  We 
 Indexing in Julia is 1-based, like R, and unlike Python which is 0-based.
 
 It's performed using the `[inds...]` operator.  The `:` operator is used to select all elements in that dimension, and you can select a range using `start:stop`. 
-You can also pass vectors of indices or boolean values to select specific elements.
+You can also pass vectors of indices or `bo`olean values to select specific elements.
 
-In DataFrames.jl, you can construct a view over all rows by using the `!` operator, like `world[!, :pop]` (in place of `world[:, :pop]`).  This syntax is also needed when modify the entire column, or creating a new column.
+In DataFrames.jl, you can construct a view over all rows by using the `!` operator, like `world[!, :pop]` (in place of `world[:, :pop]`).  This syntax is also needed when modifying the entire column, or creating a new column.
 :::
 
 ```{julia}
@@ -233,6 +233,7 @@ subset(world_with_pop, :pop => x -> !ismissing(x) && 30_000_000 < x < 1_000_000_
 DataFramesMeta.jl provides a convenient syntax for subsetting DataFrames using a DSL that closely resembles the tidyverse.
 
 ```{julia}
+#| eval: false
 using DataFramesMeta
 
 @chain world_with_pop begin
@@ -260,6 +261,7 @@ end
 Query.jl provides a convenient syntax for subsetting DataFrames using a DSL that closely resembles the tidyverse.  
 
 ```{julia}
+#| eval: false
 using Query
 
 @from row in world_with_pop |>
@@ -337,10 +339,47 @@ grain = Raster(grain_fact, (X(LinRange(-1.5, 1.5, 6)), Y(LinRange(-1.5, 1.5, 6))
 ```
 
 ```{julia}
-elev = Raster("raster/elev.tif")
-grain = Raster("raster/grain.tif")
+elev = Raster("data/elev.tif")
+grain = Raster("data/grain.tif")
 ```
 
 This `CategoricalArray` is stored in two parts: a matrix of integer codes, and a dictionary of levels, that maps the integer codes to the string values.
-We can retrieve and modify the levels of a `CategoricalArray` using the `levels()` function.
+We can retrieve the levels of a `CategoricalArray` using the `levels` function, and modify them using the `recode` function.
 
+```{julia}
+levels(grain)
+```
+
+```{julia}
+grain2 = recode(grain, "clay" => "very wet", "silt" => "moist", "sand" => "dry")
+```
+
+```{julia}
+#| echo: false
+using Makie, CairoMakie, AlgebraOfGraphics
+using Rasters
+elev = Raster("output/elev.tif")
+grain = Raster("output/grain.tif")
+
+fig = Figure(size = (1000, 500))
+
+a1, p1 = heatmap(fig[1, 1], elev; axis = (; title = "Elevation"))
+cb = Colorbar(fig[1, 2], p1)
+
+a2, p2 = heatmap(fig[1, 3], grain; colormap = Makie.Categorical([:brown, :sandybrown, :rosybrown]), axis = (; title = "Grain"), rasterize = false)
+leg = Legend(fig[1, 4], [PolyElement(color = c) for c in collect(p2.colormap[].values)], ["clay", "silt", "sand"], rasterize = false)
+fig
+```
+
+::: {.callout-note collapse="true"}
+
+## Color tables in rasters
+
+Rasters.jl does not currently support color tables in rasters.  This should come at some point, though.
+
+:::
+
+### Raster subsetting
+
+Raster subsetting is done with the Julia `getindex` syntax (square brackets), in the same way as we used it to subset DataFrames.  
+Raster selection is, however, far more powerful:

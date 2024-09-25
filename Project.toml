@@ -1,4 +1,5 @@
 [deps]
+AlgebraOfGraphics = "cbdf2221-f076-402e-a563-3d30da359d67"
 ArchGDAL = "c9ce4bd3-c3d5-55b8-8973-c0e20141b8c3"
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 CategoricalArrays = "324d7699-5711-5eae-9e2f-1d82baa6b597"
@@ -13,6 +14,7 @@ GeoMakie = "db073c08-6b98-4ee5-b6a4-5efafb3259c6"
 GeometryOps = "3251bfac-6a57-4b6d-aa61-ac1fef2975ab"
 LibGEOS = "a90b1aa1-3769-5649-ba7e-abc5a9d163eb"
 LightOSM = "d1922b25-af4e-4ba3-84af-fe9bea896051"
+Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
 OSMToolset = "a1c25ae6-0f93-4b3a-bddf-c248cb99b9fa"
 OpenStreetMapX = "86cd37e6-c0ff-550b-95fe-21d72c8d4fc9"
 Proj = "c94c279d-25a6-4763-9509-64d165bea63e"

@@ -15,6 +15,7 @@ This chapter requires the following packages to be installed and attached:
 using DataFrames
 # Vector data access and manipulation
 using GeoDataFrames
+import GeoInterface as GI
 # Raster data access and manipulation
 using Rasters
 # "Categorical" / "factor" vectors in Julia
@@ -225,7 +226,7 @@ There are ways to achieve this result using all of the DataFrame manipulation pa
 DataFrames.jl also defines a `subset` function, which is another way to achieve this result:
 
 ```{julia}
-subset(world_with_pop, :pop => x -> !ismissing(x) && 30_000_000 < x < 1_000_000_000)
+subset(world_with_pop, :pop => ByRow(x -> !ismissing(x) && 30_000_000 < x < 1_000_000_000))
 ```
 
 ## DataFramesMeta.jl
@@ -334,13 +335,9 @@ grain_order = ["clay", "silt", "sand"]
 grain_char = rand(grain_order, 6, 6)
 grain_fact = CategoricalArray(grain_char, levels = grain_order)
 
+using Rasters
 # Then, wrap the categorical array in a Raster object
 grain = Raster(grain_fact, (X(LinRange(-1.5, 1.5, 6)), Y(LinRange(-1.5, 1.5, 6))))
-```
-
-```{julia}
-elev = Raster("data/elev.tif")
-grain = Raster("data/grain.tif")
 ```
 
 This `CategoricalArray` is stored in two parts: a matrix of integer codes, and a dictionary of levels, that maps the integer codes to the string values.
@@ -382,4 +379,12 @@ Rasters.jl does not currently support color tables in rasters.  This should come
 ### Raster subsetting
 
 Raster subsetting is done with the Julia `getindex` syntax (square brackets), in the same way as we used it to subset DataFrames.  
-Raster selection is, however, far more powerful:
+Raster selection is, however, far more powerful, since you can use [selectors](https://rafaqz.github.io/DimensionalData.jl/stable/) to select various spatial subsets of the raster, like `At`, `Near`, and `Between`.
+
+```{julia}
+elev[X(At(1)), Y(At(1))]
+elev[X(Near(0)), Y(Near(0))]
+elev[X(-1..0), Y(0..1)]
+```
+
+Of course, you can 

@@ -7,3 +7,423 @@ project:
 # Attribute data operations {#sec-attr}
 
 ## Prerequisites {.unnumbered}
+
+This chapter requires the following packages to be installed and attached:
+
+```{julia}
+# Tabular data access and manipulation
+using DataFrames
+# Vector data access and manipulation
+using GeoDataFrames
+import GeoInterface as GI
+# Raster data access and manipulation
+using Rasters
+# "Categorical" / "factor" vectors in Julia
+using CategoricalArrays
+```
+
+## Introduction
+
+<!-- ### Vector data attributes -->
+
+Attribute data is non-spatial information associated with geographic (geometry) data.
+A bus stop provides a simple example: its position would typically be represented by latitude and longitude coordinates (geometry data), in addition to its name.
+The [Elephant & Castle / New Kent Road](https://www.openstreetmap.org/relation/6610626) stop in London, for example has coordinates of -0.098 degrees longitude and 51.495 degrees latitude, which can be represented as `GI.Point(-0.098, 51.495)` in the `GeoInterface` representation described in Chapter \@ref(spatial-class).
+Attributes, such as *name*, of the `POINT` feature (to use simple features terminology) are the topic of this chapter.
+
+TODO: add figure with bus stop
+```{julia}
+#| echo: false
+#| eval: false
+# Aim: find a bus stop in central London
+using LightOSM, Extents
+london_coords = (-0.1, 51.5)
+london_bb = Extents.Extent(X = (-0.11, -0.09), Y = (51.49, 51.51))
+osm_data = opq(bbox = london_bb) |> 
+  add_osm_feature(key = "highway", value = "bus_stop") |> 
+  osmdata_sf()
+osm_data_points = osm_data$osm_points
+osm_data_points[4, ]
+point_vector = round(sf::st_coordinates(osm_data_points[4, ]), 3)
+point_df = data.frame(name = "London bus stop", point_vector)
+point_sf = sf::st_as_sf(point_df, coords = c("X", "Y"))
+```
+
+<!-- ### Raster data attributes -->
+
+Another example is the elevation value (attribute) for a specific grid cell in raster data.
+Unlike the vector data model, the raster data model stores the coordinate of the grid cell indirectly, meaning the distinction between attribute and spatial information is less clear.
+To illustrate the point, think of a pixel in the 3^rd^ row and the 4^th^ column of a raster matrix.
+Its spatial location is defined by its index in the matrix: move from the origin four cells in the x direction (typically east and right on maps) and three cells in the y direction (typically south and down).
+The raster's *lookup* defines the distance for each x- and y-step.
+The lookups are a vital component of raster datasets, which specifies how pixels relate to spatial coordinates (see also Chapter \@ref(spatial-operations)).
+
+This chapter teaches how to manipulate geographic objects based on attributes such as the names of bus stops in a vector dataset and elevations of pixels in a raster dataset.
+For vector data, this means techniques such as subsetting and aggregation (see Sections \@ref(vector-attribute-subsetting) to \@ref(vector-attribute-aggregation)).
+Sections \@ref(vector-attribute-joining) and \@ref(vec-attr-creation) demonstrate how to join data onto simple feature objects using a shared ID and how to create new variables, respectively.
+Each of these operations has a spatial equivalent:
+the `select` function in **DataFrames.jl**, for example, works equally for subsetting objects based on their attribute and spatial objects; you can also join attributes in two geographic datasets using spatial joins.
+This is good news: skills developed in this chapter are cross-transferable.
+
+After a deep dive into various types of *vector* attribute operations in the next section, *raster* attribute data operations are covered.
+Creation of raster layers containing continuous and categorical attributes and extraction of cell values from one or more layer (raster subsetting) (Section \@ref(raster-subsetting)) are demonstrated.
+Section \@ref(summarizing-raster-objects) provides an overview of 'global' raster operations which can be used to summarize entire raster datasets.
+Chapter \@ref(spatial-operations) extends the methods presented here to the spatial world.
+
+
+## Vector attribute manipulation
+
+
+Geographic vector datasets are well supported in Julia, and are usually represented as `DataFrame`s.  Unlike R and Python, Julia's **GeoInterface.jl** ecosystem does not have a single `sf` class, and so the package **GeoDataFrames.jl** extends Julia's **DataFrames.jl** package to add spatial metadata and file I/O capabilities.  
+Geospatial data frames have a `geometry` column which can contain a range of geographic entities (single and 'multi' point, line, and polygon features) per row.
+
+Data frames (and geospatial tables like geographic databases, shapefiles, GeoParquet, GeoJSON, etc.) have one column per attribute variable (such as "name") and one row per observation or *feature* (e.g., per bus station).
+
+Many operations are available for attribute data, as shown in the wonderful [DataFrames.jl documentation](https://dataframes.juliadata.org/stable/).
+
+::: {.callout-note}
+## Geometry in geographic tables
+
+The column of a geographic table that holds geometry is typically called `geometry` or `geom`, but any name can be used.
+
+You can discover the names of the geometry columns in a geospatial table using `GI.geometrycolumns(table)` - typically, `first(GI.geometrycolumns(table))` is assumed to be the geometry column.
+
+There is a developing convention to indicate the geometry columns in metadata using the `GEOINTERFACE:geometrycolumns` key.  
+GeoDataFrames.jl adopts and implements this convention for the `DataFrame` type.
+:::
+
+There are many table manipulation packages in Julia, all of which are compatible with `DataFrame` objects.  
+We provide an abbreviated list here, and you can find more information in the [DataFrames.jl documentation on data manipulation frameworks](https://dataframes.juliadata.org/stable/man/querying_frameworks/#Data-manipulation-frameworks).  
+They all implement functionality similar to **dplyr** or **LINQ**. 
+
+- **DataFramesMeta.jl** provides a convenient yet fast macro-based interface to work with `DataFrame`s, via its `@chain`, `@transform`, `@select`, `@combine`, and various other macros.  The `@chain` macro is similar to the `|>` and `%>%` operators in R.  **DataFramesMacros.jl** is an alternative implementation with better support for multi-column transformations.
+- **TidierData.jl** is heavily inspired by the dplyr and tidyr R packages (part of the R tidyverse), which it aims to implement using pure Julia by wrapping DataFrames.jl.  Its entry point is also the `@chain` macro, and it uses tidy expressions as in the R tidyverse.
+- **Query.jl** is a package for querying Julia data sources. It can filter, project, join and group data from any iterable data source, and is heavily inspired by [**LINQ**](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/concepts/linq/indexq).
+
+We also recommend the following resources for further reading:
+- https://juliadatascience.io/
+- https://github.com/bkamins/JuliaForDataAnalysis
+
+### Basic `DataFrame` operations
+
+Before using these capabilities, it is worth re-capping how to discover the basic properties of vector data objects.
+Let's start by inspecting the `world.gpkg` dataset from `data/`:
+
+```{julia}
+world = GeoDataFrames.read("data/world.gpkg")
+```
+
+We can get a visual overview of the dataset by showing it (simply type the variable name in the REPL).  From this we can see an abbreviated view of its contents.
+
+<!-- #### Inspection and description -->
+
+But what is it?  We can check the type:
+
+```{julia}
+typeof(world) # `DataFrame`
+```
+
+and the size:
+
+```{julia}
+size(world) # it's a 2 dimensional object, with 177 rows and 11 columns
+```
+
+We can also use the `describe` function to get a summary of the dataset:
+
+```{julia}
+describe(world)
+```
+
+This is pretty useful - we can see the type and some descriptive values for each column.  `describe` is incredibly versatile, and you can see the docstring in the Julia REPL by typing `?describe`.
+
+Notice that the first column, `:geom`, is composed of `IGeometry{wkbMultiPolygon}` objects.  This is the geometry column, and it's loaded by `ArchGDAL.jl`, which allows I/O from a truly massive range of geospatial data formats.
+
+We can also get some geospatial information - `GI.geometrycolumns(world)` returns `{julia} GI.geometrycolumns(world)`, and `GI.crs(world)` returns `{julia} GI.crs(world)`.
+
+::: {.callout-note collapse="false"}
+
+## Dropping geometries
+
+We can drop the geometry column by subsetting the `DataFrame`, as you'll see in @sec-vec-attr-subsetting.
+
+```{julia}
+world_without_geom = world[:, Not(GI.geometrycolumns(world)...)]
+```
+
+
+Dropping the geometry column before working with attribute data can be sometimes be useful; data manipulation processes can run faster when they work only on the attribute data and geometry columns are not always needed.
+For most cases, however, it makes sense to **keep** the geometry column.
+Becoming skilled at geographic attribute data manipulation means becoming skilled at manipulating data frames.
+
+:::
+
+### Vector attribute subsetting {#sec-vec-attr-subsetting}
+
+There are multiple ways to subset data in Julia.  
+First, and probably most simply, we can index into the DataFrame object using a few kinds of selectors.  This can select rows and columns.  
+
+Indices are placed inside square brackets placed directly after a data frame object name, and specify the elements to keep.
+
+Rows are referred to using integers, and columns may be referred to using integers or symbols (`:name`).
+
+::: {.callout-note collapse="true"}
+
+## Recap: indexing in Julia
+
+Indexing in Julia is 1-based, like R, and unlike Python which is 0-based.
+
+It's performed using the `[inds...]` operator.  The `:` operator is used to select all elements in that dimension, and you can select a range using `start:stop`. 
+You can also pass vectors of indices or `bo`olean values to select specific elements.
+
+In DataFrames.jl, you can construct a view over all rows by using the `!` operator, like `world[!, :pop]` (in place of `world[:, :pop]`).  This syntax is also needed when modifying the entire column, or creating a new column.
+:::
+
+Rows are always the first argument, and then columns go in the second position.  We can select the first 5 rows of the `:pop_est` column, like so:
+
+
+```{julia}
+world[1:5, :pop]
+```
+
+This returns a vector, since we've only selected a single column.  We can also select multiple columns by passing a vector of column names:
+
+```{julia}
+world[5:end, [:pop, :continent]]
+```
+
+and note that this returns a new DataFrame with only the selected columns.
+
+We can also select using negations via the `Not` function:
+
+```{julia}
+world[1:5 ,Not(:pop)]
+```
+
+or
+
+```{julia}
+world[Not(1:150) , :]
+```
+
+You can pass any collection of indices to `Not`, and it will cause all elements in the dataframe that are not in that collection to be selected.
+
+
+Here's a small exercise: guess the number of rows and columns in the `DataFrame` objects returned by each of the following commands, then check your answer by executing the commands in Julia.
+
+```{julia}
+#| eval: false
+world[1:6, ]    # subset rows by position
+world[:, 1:3]    # subset columns by position
+world[1:6, 1:3] # subset rows and columns by position
+world[:, [:name_long, :pop]] # columns by name
+world[:, [true, true, false, false, false, false, false, true, true, false, false]] # by logical indices
+world[:, 888] # an index representing a non-existent column
+```
+
+
+We can also drop all missing values in a column using the `dropmissing` function:
+
+```{julia}
+world_with_area = dropmissing(world, :area_km2)
+```
+
+There is also a mutating version of `dropmissing`, called `dropmissing!`, which modifies the input in place.
+
+<!-- #### Selecting via predicate -->
+
+We can also subset by a boolean vector, computed on some predicate.  
+Earlier on, we saw that we could extract a column as a vector using `df.columnname`.  
+
+We can use this vector of values to create a _boolean vector_ (sometimes called a _logical_ vector in R) that we can use to index into the DataFrame.
+
+Let's select all countries whose surface area is smaller than 10,000 km^2.
+```{julia}
+countries_to_select = world_with_area.area_km2 .< 10_000
+```
+
+This is a simple vector, with boolean elements and the same length as the number of rows in the DataFrame.  
+We use it to select all rows in the DataFrame where its value is `true`.
+
+```{julia}
+world_with_area[countries_to_select, :]
+```
+
+A more concise way to achieve the same result, without the intermediate array, is `world_with_area[world_with_area.area_km2 .< 10_000, :]`.  
+This syntax is applicable to columns too!
+
+There are ways to achieve this result using all of the DataFrame manipulation packages mentioned above.
+
+
+::: {.panel-tabset}
+
+## DataFrames.jl
+
+DataFrames.jl also defines a `subset` function, which is another way to achieve this result:
+
+```{julia}
+subset(world_with_area, :area_km2 => ByRow(x -> x < 10_000))
+```
+
+## DataFramesMeta.jl
+
+DataFramesMeta.jl provides a convenient syntax for subsetting DataFrames using a DSL that closely resembles the tidyverse.
+
+```{julia}
+#| eval: false
+using DataFramesMeta
+
+@chain world_with_area begin
+    @subset @byrow (:area_km2 < 10_000)
+    select(:name_long, :area_km2)
+end
+``` 
+
+## TidierData.jl
+
+TidierData.jl provides a convenient syntax for subsetting DataFrames using a DSL that closely resembles the tidyverse.  
+
+```{julia}
+#| eval: false
+using TidierData
+
+@chain world_with_area begin
+    @subset @byrow (:area_km2 < 10_000)
+    select(:name_long, :area_km2)
+end
+```
+
+## Query.jl
+
+Query.jl provides a convenient syntax for subsetting DataFrames using a DSL that closely resembles the tidyverse.  
+
+```{julia}
+#| eval: false
+using Query
+
+@from row in world_with_area |>
+@where row.area_km2 < 10_000 |>
+@select {name_long = row.name_long, area_km2 = row.area_km2} |>
+DataFrame
+
+```
+
+:::
+
+#### Subsetting by predicate
+
+We saw how we could use a boolean vector to index into a DataFrame to select rows where the boolean is `true`.  
+However, this means we have to create the boolean vector, and while powerful, it can be clunky.
+
+Instead, DataFrames.jl offers several ways we can do this.  First is the `subset` function, which we just saw in the tabset above:
+
+```{julia}
+small_countries = subset(world_with_area, :area_km2 => ByRow(<(10_000)))
+```
+
+### Operations with DataFramesMeta.jl
+
+DataFrames.jl functions are mature, stable and widely used, making them a rock solid choice, especially in contexts where reproducibility and reliability are key.
+
+Functions from the DataFrames manipulation packages mentioned earlier (DataFramesMeta.jl, TidierData.jl, and Query.jl) are also available, and quite stable at this point.  
+They offer "tidy" workflows which can sometimes be more intuitive and productive for interactive data analysis, as well as easier to reason about.
+
+```{julia}
+using DataFramesMeta 
+result = @chain world_with_area begin
+    @subset @byrow (:area_km2 < 10_000)
+end
+```
+
+You can subset and 
+
+
+
+
+
+
+
+## Manipulating raster objects
+
+In contrast to the vector data model underlying simple features (which represents points, lines and polygons as discrete entities in space), raster data represent continuous surfaces.
+This section shows how raster objects work by creating them *from scratch*, building on Section \@ref(an-introduction-to-terra).
+Because of their unique structure, subsetting and other operations on raster datasets work in a different way, as demonstrated in Section \@ref(raster-subsetting).
+
+
+The following code recreates the raster dataset used in Section \@ref(raster-classes), the result of which is illustrated in Figure \@ref(fig:cont-raster).
+This demonstrates how the `Raster()` constructor works to create an example raster named `elev` (representing elevations).
+
+```{julia}
+vals = reshape(1:36, 6, 6)
+elev = Raster(vals, (X(LinRange(-1.5, 1.5, 6)), Y(LinRange(-1.5, 1.5, 6))))
+```
+
+
+The result is a raster object with 6 rows and 6 columns, and spatial lookup vectors for the dimensions `X` (horizontal) and `Y` (vertical).
+The `vals` argument sets the values that each cell contains: numeric data ranging from 1 to 36 in this case.
+
+
+Raster objects can also contain categorical values, like strings or even values corresponding to categories.
+The following code creates the raster datasets shown in Figure \@ref(fig:cont-raster):
+
+```{julia}
+# First, construct a categorical array
+using CategoricalArrays
+
+grain_order = ["clay", "silt", "sand"]
+grain_char = rand(grain_order, 6, 6)
+grain_fact = CategoricalArray(grain_char, levels = grain_order)
+
+using Rasters
+# Then, wrap the categorical array in a Raster object
+grain = Raster(grain_fact, (X(LinRange(-1.5, 1.5, 6)), Y(LinRange(-1.5, 1.5, 6))))
+```
+
+This `CategoricalArray` is stored in two parts: a matrix of integer codes, and a dictionary of levels, that maps the integer codes to the string values.
+We can retrieve the levels of a `CategoricalArray` using the `levels` function, and modify them using the `recode` function.
+
+```{julia}
+levels(grain)
+```
+
+```{julia}
+grain2 = recode(grain, "clay" => "very wet", "silt" => "moist", "sand" => "dry")
+```
+
+```{julia}
+#| echo: false
+using Makie, CairoMakie, AlgebraOfGraphics
+using Rasters
+elev = Raster("output/elev.tif")
+grain = Raster("output/grain.tif")
+
+fig = Figure(size = (1000, 500))
+
+a1, p1 = heatmap(fig[1, 1], elev; axis = (; title = "Elevation"))
+cb = Colorbar(fig[1, 2], p1)
+
+a2, p2 = heatmap(fig[1, 3], grain; colormap = Makie.Categorical([:brown, :sandybrown, :rosybrown]), axis = (; title = "Grain"), rasterize = false)
+leg = Legend(fig[1, 4], [PolyElement(color = c) for c in collect(p2.colormap[].values)], ["clay", "silt", "sand"], rasterize = false)
+fig
+```
+
+::: {.callout-note collapse="true"}
+
+## Color tables in rasters
+
+Rasters.jl does not currently support color tables in rasters.  This should come at some point, though.  ArchGDAL, the backend, does support these.
+
+:::
+
+### Raster subsetting
+
+Raster subsetting is done with the Julia `getindex` syntax (square brackets), in the same way as we used it to subset DataFrames.  
+Raster selection is, however, far more powerful, since you can use [selectors](https://rafaqz.github.io/DimensionalData.jl/stable/) to select various spatial subsets of the raster, like `At`, `Near`, and `Between`.
+
+```{julia}
+elev[X(At(1)), Y(At(1))]
+elev[X(Near(0)), Y(Near(0))]
+elev[X(-1..0), Y(0..1)]
+```
+
+Of course, you can 

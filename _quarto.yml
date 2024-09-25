@@ -32,7 +32,7 @@ book:
 
 format:
   html:
-    theme: lux
+    theme: flatly
     code-link: true
     template-partials: [helpers/toc.html, helpers/title-block.html]
     toc-title: "On this page"

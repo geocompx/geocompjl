@@ -3,6 +3,9 @@ project:
   output-dir: docs
   execute-dir: project
 
+filters:
+  - code-visibility
+
 book:
   title: "Geocomputation with Julia"
   page-footer: "Geocomputation with Julia was written by Maarten Pronk, Rafael Schouten, Anshul Singhvi, Felix Cremer and Jakub Nowosad."

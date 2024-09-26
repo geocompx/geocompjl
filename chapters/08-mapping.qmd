@@ -7,3 +7,190 @@ project:
 # Making maps with Julia {#sec-map-making}
 
 ## Prerequisites {.unnumbered}
+
+This chapter requires the following packages:
+
+```{julia}
+# We use the Makie.jl ecosystem primarily.
+using CairoMakie
+using GeoMakie
+using Tyler
+using NaturalEarth # Natural Earth vector data
+using GeoDataFrames, ArchGDAL
+import GeoInterface as GI
+import GeometryOps as GO
+import GeoFormatTypes as GFT
+import LibGEOS # to activate some capabilities of GeometryOps
+using FlexiJoins # dataframe joins
+using Rasters
+```
+
+It also relies on the following data files:
+
+```{julia}
+nz = GeoDataFrames.read("data/nz.gpkg")
+nz_height = GeoDataFrames.read("data/nz_height.gpkg")
+nz_elev = Raster("data/nz_elev.tif")
+tanzania = filter!(
+  :name_long => ==("Tanzania"), 
+  GeoDataFrames.read("data/world.gpkg")
+)
+```
+
+From the data loaded above, we can create some more geometries.
+First, we create a buffer around the `tanzania` polygon.  In order to create this buffer, we need to be in a Cartesian ("planar") CRS, and the Tanzania polygon is in lat/long space (which is "geographic" or "ellipsoidal").  
+Thus, we first reproject the polygon into a Cartesian CRS, create the buffer, and then reproject back into lat/long space.
+```{julia}
+tanzania_buf = GO.reproject(
+  GO.buffer(
+    GO.reproject(tanzania, GI.crs(tanzania), GFT.EPSG(32736)), 
+    50000), 
+  GFT.EPSG(32736),
+  GFT.EPSG(4326)
+)
+```
+We can also create a dataframe of all of Tanzania's neighbours:
+```{julia}
+tanzania_neigh = filter!(
+  :geom => x -> GO.intersects(x, only(tanzania_buf.geom)), 
+  GeoDataFrames.read("data/world.gpkg")
+)
+```
+
+## Introduction
+
+A satisfying and important aspect of geographic research is communicating the results.
+Map making---the art of cartography---is an ancient skill that involves communication, intuition, and an element of creativity.
+In addition to being fun and creative, cartography also has important practical applications.
+A carefully crafted map can be the best way of communicating the results of your work, but poorly designed maps can leave a bad impression.
+Common design issues include poor placement, size and readability of text and careless selection of colors, as outlined in the style guide of the Journal of Maps.
+Furthermore, poor map making can hinder the communication of results [@brewer_designing_2015]:
+
+> Amateur-looking maps can undermine your audience's ability to understand important information and weaken the presentation of a professional data investigation.
+
+Maps have been used for several thousand years for a wide variety of purposes.
+Historic examples include maps of buildings and land ownership in the Old Babylonian dynasty more than 3000 years ago and Ptolemy's world map in his masterpiece Geography nearly 2000 years ago [@talbert_ancient_2014].
+
+Map making has historically been an activity undertaken only by, or on behalf of, the elite.
+This has changed with the emergence of open source mapping software such as mapping packages in Python, R, and other languages, and the "print composer" in QGIS, which enable anyone to make high-quality maps, enabling "citizen science".
+Maps are also often the best way to present the findings of geocomputational research in a way that is accessible.
+Map making is therefore a critical part of geocomputation and its emphasis not only on describing, but also changing the world.
+
+Basic static display of vector layers in Julia can be done with the `plot` function from **Makie.jl**, as we saw in Sections @sec-vector-layers and @sec-using-rasterio.
+Other, more advanced uses of these methods, were also encountered in subsequent chapters, when demonstrating the various outputs we got.
+In this chapter, we provide a comprehensive summary of the most useful workflows of these two methods for creating static maps (@sec-static-maps).
+Static maps can be easily shared and viewed (whether digitally or in print), however they can only convey as much information as a static image can.
+Interactive maps provide much more flexibilty in terms of user experience and amount of information, however they often require more work to design and effectively share.
+Thus, in @sec-interactive-maps, we move on to elaborate on the `.explore` method for creating interactive maps, which was also briefly introduced earlier in @sec-vector-layers.
+
+## Static maps {#sec-static-maps}
+
+Static maps are the most common type of visual output from geocomputation. 
+For example, we have been using static **Makie.jl** plots throughout the book, to display vector and raster data.  
+
+In this section we systematically review and elaborate on the various properties that can be customized when using those functions.
+
+A static map is basically a digital image. 
+When stored in a file, standard formats include `.png` and `.pdf` for graphical raster and vector outputs, respectively. 
+Thanks to their simplicity, static maps can be shared in a wide variety of ways: in print, through files sent by e-mail, embedded in documents and web pages, etc.
+
+In the **Makie.jl** ecosystem, there is not much difference between static and interactive or dynamic maps, since everything can be updated on-the-fly using `Observables`.  We will show how to do this shortly.
+
+Nevertheless, there are many aesthetic considerations when making a static map, and there is also a wide variety of ways to create static maps using novel presentation methods. 
+This is the focus of the field of cartography, and beyond the scope of this book.
+
+### Minimal examples 
+
+A vector layer can be displayed by plotting its geometry.  
+A minimal example of a vector layer map is obtained using `plot` with nothing but the defaults (@fig-vector-minimal).
+
+```{julia}
+#| label: fig-vector-minimal
+#| fig-cap: Minimal example of a static vector layer plot with `.plot`
+plot(nz.geom)
+```
+
+A `Raster`, or any Julia matrix for that matter, cna be displayed using any 2D plotting function, like `heatmap` or `surface`.
+@fig-raster-minimal shows a minimal example of a static raster map.
+
+```{julia}
+#| label: fig-raster-minimal
+#| fig-cap: Minimal example of a static raster plot with `heatmap`
+heatmap(nz_elev)
+```
+
+### Styling {#sec-static-styling}
+
+The most useful visual properties of the geometries, that can be specified in plotting functions, include `color`, `strokecolor`, and `markersize` (for points) (@fig-basic-plot).
+
+```{julia}
+#| label: fig-basic-plot
+#| fig-cap: Setting `color` and `edgecolor` in static maps of a vector layer
+#| fig-subcap: 
+#| - Light grey fill
+#| - No fill, blue edge
+#| - Light grey fill, blue edge
+#| layout-ncol: 3
+display(poly(nz.geom; color=:lightgrey))
+display(poly(nz.geom; color=:transparent, strokecolor=:blue, strokewidth=1))
+display(poly(nz.geom; color=:lightgrey, strokecolor=:blue, strokewidth=1))
+```
+
+The next example uses `markersize` to get larger points (@fig-basic-plot-markersize).
+It also demonstrates how to control the overall figure size, such as $1000 \times 1000$ $px$ in this case, using the explicit `Figure` constructor to initialize the plot and its `size` parameter to specify size.
+
+```{julia}
+#| label: fig-basic-plot-markersize
+#| fig-cap: Setting `markersize` in a static map of a vector layer
+fig = Figure(size=(4 * 72,4 * 72))
+ax, plt = scatter(fig[1, 1], nz_height.geom, markersize=100)
+fig
+```
+
+
+::: callout-note
+As you have probably noticed throughout the book, the `plt.subplots` function is used to initialize a **maptplotlib** plot layout, possibly also specifying image size (e.g., @fig-basic-plot-markersize) and multi-panel layout (e.g., @fig-faceted-map).
+The returned value is a `tuple` of `Figure` and `Axes` objects, which we conventionally unpack to variables named `fig` and `ax`. 
+These two variables represent the entire figure, and the elements of individual sub-figures, respectively.
+
+For our purposes in this book, we have been using just the `ax` object, passing it to the `ax` parameter in further function calls, in order to add subsequent layers (e.g., @fig-plot-raster-and-vector) or other elements (e.g., @fig-plot-symbology-colors-r-scale) into the same panel.
+In a single-panel figure, we pass `ax` itself, whereas in a multi-panel figure we pass individual elements representing a specific panel (such as `ax[0]` or `ax[0][0]`, depending of the layout; see @sec-faceted-maps)
+
+Note that in some of the cases we have used an alternative to `plt.subplots`---we assigned an initial plot into a variable, conventionally named `base`, similarly passing it to the `ax` parameter of further calls, e.g., to add subsequent layers (e.g., @fig-two-layers); this (shorter) syntax, though, is less general than `plt.subplots` and not applicable in some of the cases (such as displaying a raster and a vector layer in the same plot, e.g., @fig-plot-raster-and-vector).
+
+TODO: translate this to Julia.
+:::
+
+### Symbology {#sec-plot-symbology}
+
+We consider the following concepts to be "symbology":
+- Legend
+- Color
+- Color map
+
+For example, @fig-plot-symbology shows the `nz` polygons colored according to the `'Median_income'` attribute (column), with a legend.
+
+::: {.panel-tabset}
+
+## Pure Makie.jl
+```{julia}
+#| label: fig-plot-symbology
+#| fig-cap: Symbology in a static map created with `poly`
+fig, ax, plt = poly(nz.geom; color = nz.Median_income)
+cb = Colorbar(fig[1, 2], plt; label = "Median income")
+fig
+```
+
+## AlgebraOfGraphics.jl
+
+```{julia}
+#| fig-cap: Symbology in a static map created with AlgebraOfGraphics.jl
+using AlgebraOfGraphics
+data(nz) * mapping(:geom; color = :Median_income) * visual(Poly) |> draw
+```
+:::
+
+The default color map which you see in @fig-plot-symbology is `colormap=:viridis`.
+The `colormap` argument can be used to specify one of countless color schemes - you can manually construct your own, or use one of the [many available color schemes in Makie](https://docs.makie.org/stable/explanations/colors).
+
+

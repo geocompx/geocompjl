@@ -33,17 +33,17 @@ Makie.set_theme!(
 It also relies on the following data files:
 
 ```{julia}
-src_srtm = Raster("data/srtm.tif")
-src_nlcd = Raster("data/nlcd.tif")
-src_grain = Raster("output/grain.tif")
-src_elev = Raster("output/elev.tif")
-src_dem = Raster("data/dem.tif")
-zion = GeoDataFrames.read("data/zion.gpkg")
-zion_points = GeoDataFrames.read("data/zion_points.gpkg")
-cycle_hire_osm = GeoDataFrames.read("data/cycle_hire_osm.gpkg")
-us_states = GeoDataFrames.read("data/us_states.gpkg")
-nz = GeoDataFrames.read("data/nz.gpkg")
-src_nz_elev = Raster("data/nz_elev.tif")
+src_srtm = Raster("../data/srtm.tif")
+src_nlcd = Raster("../data/nlcd.tif")
+src_grain = Raster("../output/grain.tif")
+src_elev = Raster("../output/elev.tif")
+src_dem = Raster("../data/dem.tif")
+zion = GeoDataFrames.read("../data/zion.gpkg")
+zion_points = GeoDataFrames.read("../data/zion_points.gpkg")
+cycle_hire_osm = GeoDataFrames.read("../data/cycle_hire_osm.gpkg")
+us_states = GeoDataFrames.read("../data/us_states.gpkg")
+nz = GeoDataFrames.read("../data/nz.gpkg")
+src_nz_elev = Raster("../data/nz_elev.tif")
 ```
 
 ## Introduction
@@ -146,7 +146,7 @@ out_image_mask = Rasters.mask(src_srtm; with = zion, missingval = 9999)
 We can write this masked raster to file with `Rasters.write`:
 
 ```{julia}
-Rasters.write("output/srtm_masked.tif", out_image_mask; force = true
+Rasters.write("../output/srtm_masked.tif", out_image_mask; force = true
 )
 ```
 
@@ -170,7 +170,7 @@ out_image_mask_crop = Rasters.crop(out_image_mask; to = zion, touches = true)
 and we write it to file using `Rasters.write`:
 
 ```{julia}
-Rasters.write("output/srtm_masked_cropped.tif", out_image_mask_crop; force = true)
+Rasters.write("../output/srtm_masked_cropped.tif", out_image_mask_crop; force = true)
 ```
 
 @fig-raster-crop shows the original raster, and the three masking and/or cropping results.
@@ -750,7 +750,7 @@ One [suggestion](https://gis.stackexchange.com/questions/455980/vectorizing-all-
 To transform a raster to points, Rasters.jl provides the `Rasters.DimTable` constructor, which converts a raster into a lazy, table-like form.  This can be converted directly to a `DataFrame`, or operated on independently.
 
 ```{julia}
-dt = DimTable(Raster("output/elev.tif"))
+dt = DimTable(Raster("../output/elev.tif"))
 ```
 
 Notice that this has three columns, `:X`, `:Y`, and `:layer1`, corresponding to the pixel centroids and elevation values.  But what if we want to treat the X and Y dimensionas as point geometries?
@@ -758,7 +758,7 @@ Notice that this has three columns, `:X`, `:Y`, and `:layer1`, corresponding to 
 `DimTable` has a `mergedims` keyword argument for this, which allows us to merge the X and Y dimensions into a single dimension.
 
 ```{julia}
-dt = DimTable(Raster("output/elev.tif"), mergedims = (X, Y))
+dt = DimTable(Raster("../output/elev.tif"), mergedims = (X, Y))
 ```
 
 This has created a `DimTable` with a column `:XY`, which contains the pixel centroids as point-like objects.  We can convert this to a `DataFrame`, set some metadata to indicate that geometry is in `:XY`, and plot the result.
@@ -776,8 +776,8 @@ scatter(df.XY; color = df.layer1)
 We can even save this to a file trivially easily:
 
 ```{julia}
-GeoDataFrames.write("output/elev.gpkg", df)
-GeoDataFrames.read("output/elev.gpkg")
+GeoDataFrames.write("../output/elev.gpkg", df)
+GeoDataFrames.read("../output/elev.gpkg")
 ```
 
 

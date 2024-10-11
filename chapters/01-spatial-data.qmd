@@ -1,7 +1,5 @@
 ---
 engine: julia
-project:
-  execute-dir: project
 ---
 
 # Geographic data in Julia {#sec-spatial-class}
@@ -20,7 +18,7 @@ mkpath("output")
 ## Introduction
 ```{julia}
 using GeoDataFrames
-df = GeoDataFrames.read("data/world.gpkg")
+df = GeoDataFrames.read("../data/world.gpkg")
 ```
 
 ```{julia}
@@ -130,7 +128,7 @@ For now, for completeness, and also to use these rasters in subsequent chapters 
 In the case of `elev`, we do it as follows with the `Rasters.write` functions and methods of the **Rasters.jl** package.
 
 ```{julia}
-write("output/elev.tif", elev_raster; force = true)
+write("../output/elev.tif", elev_raster; force = true)
 ```
 
 Note that the CRS we (arbitrarily) set for the `elev` raster is WGS84, defined using `crs=4326` according to the EPSG code.
@@ -138,7 +136,7 @@ Note that the CRS we (arbitrarily) set for the `elev` raster is WGS84, defined u
 Exporting the `grain` raster is done in the same way, with the only differences being the file name and the array we write into the connection.
 
 ```{julia}
-write("output/grain.tif", Raster(grain, (new_x, new_y); crs = GFT.EPSG(4326)); force = true)
+write("../output/grain.tif", Raster(grain, (new_x, new_y); crs = GFT.EPSG(4326)); force = true)
 ```
 
 As a result, the files `elev.tif` and `grain.tif` are written into the `output` directory.

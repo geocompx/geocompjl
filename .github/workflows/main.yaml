@@ -15,24 +15,8 @@ jobs:
       QUARTO_JULIA_PROJECT: "@quarto"
     steps:
       - uses: actions/checkout@v3
-      - uses: julia-actions/setup-julia@v2
-      - uses: julia-actions/cache@v2
-      - name: Set up custom Julia dependencies
-        run: |
-          using Pkg
-          Pkg.activate("quarto"; shared = true)
-          # TODO: QuartoNotebookRunner does not support execute-dir yet, but this PR does.
-          Pkg.add(url = "https://github.com/asinghvi17/QuartoNotebookRunner.jl", rev = "as/execute-dir")
-          Pkg.instantiate()
-          Pkg.activate(".")
-          # Pkg.add(PackageSpec[]) # if we need to add more dev packages
-        shell: julia {0}
-      - uses: julia-actions/julia-buildpkg@v1
-      - name: Set up Quarto
-        uses: quarto-dev/quarto-actions/setup@v2
-        env:
-          QUARTO_JULIA_PROJECT: "@quarto"
-      - name: Render and Publish 
+      - uses: ./.github/actions/setup-julia-and-quarto.yml
+      - name: Render and Publish (main branch only)
         uses: quarto-dev/quarto-actions/publish@v2
         with:
           target: netlify

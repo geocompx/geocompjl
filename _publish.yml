@@ -1,0 +1,4 @@
+- source: project
+  netlify:
+    - id: "e18690e5-215e-4584-b0f1-963bc99a10d0"
+      url: "https://jl.geocompx.org"

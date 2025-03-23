@@ -27,8 +27,3 @@ The current build status as follows:
 For details on reproducing the book, see the README in the project's GitHub repo: <https://github.com/geocompx/geocompjl>.
 
 :::
-
-```{julia}
-# |echo: true
-print("Hello geocompx World")
-```

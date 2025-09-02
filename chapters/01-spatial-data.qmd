@@ -27,7 +27,7 @@ df = GeoDataFrames.read("data/world.gpkg")
 using CairoMakie
 using GeoMakie
 
-f, a, p = poly(df.geom)
+f, a, p = poly(df.geometry)
 ```
 
 

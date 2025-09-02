@@ -92,7 +92,7 @@ out_image_mask = Rasters.mask(src_srtm; with = zion)
 ## Single geometry
 
 ```{julia}
-masker = zion.geom[1]
+masker = zion.geometry[1]
 ```
 
 ```{julia}
@@ -102,7 +102,7 @@ Rasters.mask(src_srtm; with = masker)
 ## Vector of geometries
 
 ```{julia}
-masker = zion.geom
+masker = zion.geometry
 ```
 
 ```{julia}
@@ -113,7 +113,7 @@ Rasters.mask(src_srtm; with = masker)
 ## Extent taken from geometry
 
 ```{julia}
-masker = GI.extent(zion.geom[1])
+masker = GI.extent(zion.geometry[1])
 ```
 
 ```{julia}
@@ -156,7 +156,7 @@ In **Rasters.jl**, cropping and masking are distinct operations.  Cropping, whic
 Here, we simply pass the `zion` feature table to the `to` keyword argument, which indicates what to crop the raster "to".  We also set the `touches` keyword argument to `true`, to specify that pixels that partially overlap with the vector layer are included in the output.
 
 ```{julia}
-out_image_crop = Rasters.crop(src_srtm; to = zion, touches = true)
+out_image_crop = Rasters.crop(src_srtm; to = zion.geometry[1], touches = true)
 ```
 
 You can also assemble an extent manually, using `Extents.Extent`, or extract one using `GI.extent`.
@@ -182,19 +182,19 @@ fig = Figure(size = (600, 600))
 
 ax1 = Axis(fig[1, 1]; title = "Original")
 plot!(ax1, src_srtm)
-poly!(ax1, zion.geom; color = :transparent, strokecolor = :black, strokewidth = 0.75)
+poly!(ax1, zion.geometry; color = :transparent, strokecolor = :black, strokewidth = 0.75)
 
 ax2 = Axis(fig[1, 2]; title = "Masked")
 plot!(ax2, out_image_mask)
-poly!(ax2, zion.geom; color = :transparent, strokecolor = :black, strokewidth = 0.75)
+poly!(ax2, zion.geometry; color = :transparent, strokecolor = :black, strokewidth = 0.75)
 
 ax3 = Axis(fig[2, 1]; title = "Cropped")
 plot!(ax3, out_image_crop)
-poly!(ax3, zion.geom; color = :transparent, strokecolor = :black, strokewidth = 0.75)
+poly!(ax3, zion.geometry; color = :transparent, strokecolor = :black, strokewidth = 0.75)
 
 ax4 = Axis(fig[2, 2]; title = "Masked+Cropped")
 plot!(ax4, out_image_mask_crop)
-poly!(ax4, zion.geom; color = :transparent, strokecolor = :black, strokewidth = 0.75)
+poly!(ax4, zion.geometry; color = :transparent, strokecolor = :black, strokewidth = 0.75)
 
 display(fig)
 ```
@@ -221,7 +221,7 @@ To demonstrate extraction to points, we will use `zion_points`, which contains a
 #| label: fig-zion-points
 #| fig-cap: 30 point locations within the Zion National Park, with elevation in the background
 fig, ax, plt = plot(src_srtm)
-scatter!(ax, zion_points.geom, color=:black, strokecolor=:white, strokewidth = 1);
+scatter!(ax, zion_points.geometry, color=:black, strokecolor=:white, strokewidth = 1);
 display(fig)
 ```
 
@@ -358,7 +358,7 @@ The information in `zion_transect_pnt`, namely the `"dist"` and `"elev"` attribu
 # Raster and a line transect
 fig, ax, plt = plot(src_srtm)
 lines!(ax, zion_transect; color = :black)
-poly!(ax, zion.geom; color = :transparent, strokecolor = :white, strokewidth = 0.75)
+poly!(ax, zion.geometry; color = :transparent, strokecolor = :white, strokewidth = 0.75)
 display(fig)
 # Elevation profile
 fig, ax, plt = lines(
@@ -457,11 +457,11 @@ According to the result, for example, the value `2` ("Developed" class) appears 
 #| - Categorical raster
 # Continuous raster
 fig, ax, plt = plot(src_srtm)
-poly!(ax, zion.geom; color = :transparent, strokecolor = :black, strokewidth = 0.75)
+poly!(ax, zion.geometry; color = :transparent, strokecolor = :black, strokewidth = 0.75)
 display(fig)
 # Categorical raster
 fig, ax, plt = plot(src_nlcd; colormap = cgrad(:Set3; categorical = true), source = GI.crs(src_nlcd), axis = (; type = GeoAxis, dest = GI.crs(src_nlcd)))
-poly!(ax, zion.geom; source = GI.crs(zion.geom[1]), color = :transparent, strokecolor = :black, strokewidth = 0.75)
+poly!(ax, zion.geometry; source = GI.crs(zion.geometry[1]), color = :transparent, strokecolor = :black, strokewidth = 0.75)
 cm = Colorbar(fig[1, 2], plt)
 ax.xgridvisible = false
 ax.ygridvisible = false
@@ -579,7 +579,7 @@ Second, by passing the vectors of geometries and values separately.
 ```{julia}
 ch_raster3 = Rasters.rasterize(
     sum,                     # reducer
-    cycle_hire_osm_projected.geom; # data
+    cycle_hire_osm_projected.geometry; # data
     fill = cycle_hire_osm_projected.capacity, 
     crs = GI.crs(cycle_hire_osm_projected),
     size = (1000, 1000) # specify size in "pixels"
@@ -597,8 +597,8 @@ The input point layer `cycle_hire_osm_projected` and the three variants of raste
 #| - Point counts
 #| - Summed attribute values
 # Input points
-nonmissing_df = dropmissing(cycle_hire_osm_projected, [:capacity, :geom])
-f, a, p = scatter(nonmissing_df.geom; color = nonmissing_df.capacity)
+nonmissing_df = dropmissing(cycle_hire_osm_projected, [:capacity, :geometry])
+f, a, p = scatter(nonmissing_df.geometry; color = nonmissing_df.capacity)
 Colorbar(f[1, 2], p)
 display(f)
 # Presence/Absence
@@ -622,7 +622,7 @@ california = us_states[ us_states[!, "NAME"] .== "California", :]
 Second, we obtain the borders of the polygon as a `'MultiLineString'
 
 ```{julia}
-california_geom = only(california.geom)
+california_geom = only(california.geometry)
 california_borders = GI.MultiLineString(GI.LineString.(GI.getexterior.(GI.getgeom(california_geom))); crs = GI.crs(california_geom)) # TODO: make this a lot better....
 ```
 
@@ -644,7 +644,7 @@ Compare it to a polygon rasterization, with `all_touched=False` (the default), w
 california_raster2 = Rasters.rasterize(
     last, 
     california;
-    geometrycolumn = :geom,
+    geometrycolumn = :geometry,
     fill = 1,
     res = 0.5,
     boundary = :center,
@@ -827,7 +827,7 @@ For the coastline, we will dissolve the New Zealand administrative division poly
 
 ```{julia}
 using LibGEOS
-coastline_linestrings = GI.getexterior.(GI.getgeom(LibGEOS.unaryUnion(GI.GeometryCollection(nz.geom)))) .|> x -> GI.LineString(collect(GI.getpoint(x)))
+coastline_linestrings = GI.getexterior.(GI.getgeom(LibGEOS.unaryUnion(GI.GeometryCollection(nz.geometry)))) .|> x -> GI.LineString(collect(GI.getpoint(x)))
 coastline = GI.MultiLineString(coastline_linestrings)
 coastline = GO.reproject(coastline; target_crs = GI.crs(src_nz_elev), source_crs = GI.crs(nz))
 ```

@@ -18,7 +18,7 @@ endswith(pwd(), "geocompjl") || cd("..")
 ```{julia}
 using Pkg
 Pkg.status()
-Pkg.precompile(io=devnull)
+Pkg.precompile(io=devnull) # hide
 ```
 
 ```{julia}

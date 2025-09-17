@@ -3,12 +3,12 @@ engine: julia
 project:
   execute-dir: project
 ---
-
 ```{julia}
 #| echo: false
-cd("..")
+# Stupid hack to workaround QuartoNotebookRunner bug untill
+# https://github.com/PumasAI/QuartoNotebookRunner.jl/pull/184 is merged
+endswith(pwd(), "geocompjl") || cd("..")
 ```
-
 
 # Geographic data in Julia {#sec-spatial-class}
 

@@ -644,7 +644,6 @@ Compare it to a polygon rasterization, with `all_touched=False` (the default), w
 california_raster2 = Rasters.rasterize(
     last, 
     california;
-    geometrycolumn = :geometry,
     fill = 1,
     res = 0.5,
     boundary = :center,

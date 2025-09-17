@@ -3,22 +3,27 @@ engine: julia
 project:
   execute-dir: project
 ---
+
+# Geographic data in Julia {#sec-spatial-class}
+
 ```{julia}
 #| echo: false
+#| output: false
 # Stupid hack to workaround QuartoNotebookRunner bug untill
 # https://github.com/PumasAI/QuartoNotebookRunner.jl/pull/184 is merged
 endswith(pwd(), "geocompjl") || cd("..")
 ```
 
-# Geographic data in Julia {#sec-spatial-class}
 
 ```{julia}
 using Pkg
 Pkg.status()
+Pkg.precompile(io=devnull)
 ```
 
 ```{julia}
 #| echo: false
+#| output: false
 mkpath("output")
 ```
 

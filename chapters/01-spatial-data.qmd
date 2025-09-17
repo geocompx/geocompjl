@@ -7,12 +7,23 @@ project:
 # Geographic data in Julia {#sec-spatial-class}
 
 ```{julia}
+#| echo: false
+#| output: false
+# Stupid hack to workaround QuartoNotebookRunner bug untill
+# https://github.com/PumasAI/QuartoNotebookRunner.jl/pull/184 is merged
+endswith(pwd(), "geocompjl") || cd("..")
+```
+
+
+```{julia}
 using Pkg
 Pkg.status()
+Pkg.precompile(io=devnull) # hide
 ```
 
 ```{julia}
 #| echo: false
+#| output: false
 mkpath("output")
 ```
 
@@ -27,7 +38,7 @@ df = GeoDataFrames.read("data/world.gpkg")
 using CairoMakie
 using GeoMakie
 
-f, a, p = poly(df.geom)
+f, a, p = poly(df.geometry)
 ```
 
 

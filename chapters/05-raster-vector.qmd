@@ -4,6 +4,11 @@ project:
   execute-dir: project
 ---
 
+```{julia}
+#| echo: false
+cd("..")
+```
+
 # Raster-vector interactions {#sec-raster-vector}
 
 ## Prerequisites {.unnumbered}
@@ -75,7 +80,7 @@ Since it is easier and more precise to reproject vector layers, compared to rast
 The CRS defines how the coordinates of the geometry relate to locations on the surface of the Earth.
 
 ```{julia}
-zion = GO.reproject(zion; target_crs = GI.crs(src_srtm))
+zion = GO.reproject(zion; target_crs = GI.crs(src_srtm), always_xy=true)
 ```
 
 To mask the image, i.e., convert all pixels which do not intersect with the `zion` polygon to `missing`, we use the `Rasters.mask` function.  
@@ -287,7 +292,7 @@ First, we need to create a layer consisting of points along our line (`zion_tran
 To do that, we need to transform the line into a projected CRS (so that we work with true distances, in $m$), such as [Universal Transverse Mercator](https://en.wikipedia.org/wiki/Universal_Transverse_Mercator_coordinate_system).
 
 ```{julia}
-zion_transect_utm = GO.reproject(zion_transect; target_crs = GFT.EPSG(32612), source_crs = GFT.EPSG(4326))
+zion_transect_utm = GO.reproject(zion_transect; target_crs = GFT.EPSG(32612), source_crs = GFT.EPSG(4326), always_xy=true)
 ```
 
 The printout of the new geometry shows this is still a straight line between two points, only with coordinates in a projected CRS.
@@ -316,7 +321,7 @@ This gives us a collection of 251 points along the line.  We can extract the poi
 
 ```{julia}
 line_points = GI.getpoint(zion_transect_line)
-zion_transect_pnt = GO.reproject(line_points; target_crs = GI.crs(src_srtm), source_crs = GI.crs(zion_transect_line))
+zion_transect_pnt = GO.reproject(line_points; target_crs = GI.crs(src_srtm), source_crs = GI.crs(zion_transect_line), always_xy=true)
 ```
 
 Finally, we extract the elevation values for each point in our transect and combine the information with `zion_transect_pnt` (after "promoting" it to a `DataFrame`, to accommodate extra attributes), using the point extraction method shown earlier (@sec-extraction-to-points).
@@ -439,7 +444,7 @@ The result provides useful summaries, for example that the maximum height in the
 To count occurrences of categorical raster values within polygons (@fig-raster-extract-to-polygon (b)), we can use masking (@sec-raster-cropping) combined with `StatsBase.countmap`, as follows.
 
 ```{julia}
-out_image = Rasters.mask(src_nlcd; with = GO.reproject(zion; target_crs = GI.crs(src_nlcd)))
+out_image = Rasters.mask(src_nlcd; with = GO.reproject(zion; target_crs = GI.crs(src_nlcd), always_xy=true))
 using StatsBase
 counts = StatsBase.countmap(out_image)
 ```
@@ -517,7 +522,7 @@ To demonstrate point rasterization, we will prepare a "template" raster that has
 To do that, we first take our point layer and transform it to a projected CRS.
 
 ```{julia}
-cycle_hire_osm_projected = GO.reproject(cycle_hire_osm; target_crs = GFT.EPSG(27700))
+cycle_hire_osm_projected = GO.reproject(cycle_hire_osm; target_crs = GFT.EPSG(27700), always_xy=true)
 ```
 
 We can then use the `Rasters.rasterize` function to rasterize the points.
@@ -828,7 +833,7 @@ For the coastline, we will dissolve the New Zealand administrative division poly
 using LibGEOS
 coastline_linestrings = GI.getexterior.(GI.getgeom(LibGEOS.unaryUnion(GI.GeometryCollection(nz.geometry)))) .|> x -> GI.LineString(collect(GI.getpoint(x)))
 coastline = GI.MultiLineString(coastline_linestrings)
-coastline = GO.reproject(coastline; target_crs = GI.crs(src_nz_elev), source_crs = GI.crs(nz))
+coastline = GO.reproject(coastline; target_crs = GI.crs(src_nz_elev), source_crs = GI.crs(nz), always_xy=true)
 ```
 
 For a "template" raster, we will aggregate the New Zealand DEM, in the `nz_elev.tif` file, to 5 times coarser resolution.

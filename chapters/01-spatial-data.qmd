@@ -4,6 +4,12 @@ project:
   execute-dir: project
 ---
 
+```{julia}
+#| echo: false
+cd("..")
+```
+
+
 # Geographic data in Julia {#sec-spatial-class}
 
 ```{julia}

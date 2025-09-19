@@ -9,7 +9,7 @@ book:
   author: "Maarten Pronk, Rafael Schouten, Anshul Singhvi, and Felix Cremer."
   description: |
     An introductory resource for working with geographic data in Julia
-  cover-image: https://geocompx.org/static/img/book_cover_jl.png
+  cover-image: cover/cover_small-fs8.png
   site-url: https://jl.geocompx.org
   repo-url: https://github.com/geocompx/geocompjl/
   repo-branch: main

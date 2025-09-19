@@ -1,110 +1,149 @@
-using GLMakie, MakieTeX, Colors
+using CairoMakie, MakieTeX
 using Rasters
 using ArchGDAL
+using Stencils
+using Statistics
+
 dir = @__DIR__
 
+# Load the DEM data and smooth it a bit
 dem = Raster(joinpath(dir, "copdem_prague.tif"))
+dem2 = mapstencil(mean, Moore(1), dem)  # Smooth the DEM slightly for better visuals
+mask = dem2 .<= (dem .- 10)  # Ensure no negative artifacts from smoothing
+dem2[mask] .= dem[mask]  # Replace only the problematic areas (at the edges)
+dem = dem2
 
-GLMakie.activate!()
-GLMakie.activate!(ssao=true)
+# Close any open screens and set backend
+CairoMakie.activate!()
 
-GLMakie.closeall() # close any open screen
-
-x = lookup(dem, X) # if X is longitude
-y = lookup(dem, Y) # if Y is latitude
+x = lookup(dem, X) # longitude
+y = lookup(dem, Y) # latitude
 zmin, zmax = minimum(dem), maximum(dem)
 cmap = :viridis
 
-set_theme!(theme_dark())
-# backgroundcolor is julia purple with blacks set to 80% to match Python cover
+set_theme!(merge(
+    theme_dark(),
+    Attributes(;
+        Heatmap=(; rasterize=2),
+        Surface=(; rasterize=2),
+        color=:white,
+        linecolor=:white,
+    )))
+
 fig = Figure(
-    size=(500, 750) .* 2, 
-    fontsize=22, 
-    backgroundcolor=colorant"#371135"
-);
-ax = Axis3(
-    fig[1, 1], 
-    aspect=:equal, perspectiveness=1, 
-    elevation=π / 5,
-    zgridcolor=:white, ygridcolor=:white, xgridcolor=:white, 
-    xlabel="Longitude", ylabel="Latitude"
+    size=(700, 1000),
+    fontsize=16,
+    backgroundcolor="#371135"  # Julia purple background
 )
-
-xlims!(ax, extrema(x)...)
-ylims!(ax, extrema(y)...)
-zlims!(ax, 0, zmax + 100)
-sp = surface!(
-    ax, dem; 
-    colormap=cmap, colorrange=(zmin, zmax),
-)
-# Fiddle with lighting in the surface plot
-sp.diffuse[] = 0.9
-# sp.shading[] = MultiLightShading
-sp.shading[] = NoShading
-
-# Construct contour lines
-cp = contour!(
-    ax, dem; 
-    levels=100, linewidth=0.1, 
-    color=:white, colorrange=(zmin, zmax), 
-    transparency=true
-)
-
-# This makes sure that the screen is reconstituted
-# and all rendering options are applied correctly.
-GLMakie.closeall() # close any open screen
-
-save("test.png", fig; px_per_unit=2)
-
-
-# Test rendering parameters
-oldspec = sm.specular[]
-record(fig, "specular.mp4", LinRange(0, 1, 100)) do s
-    sm.specular[] = s
-end
-sm.specular[] = oldspec
-
-oldspec = sm.shininess[]
-record(fig, "shininess.mp4", LinRange(1, 100, 100)) do s
-    sm.shininess[] = s
-end
-sm.shininess[] = oldspec
-
-oldspec = sm.diffuse[]
-record(fig, "diffuse.mp4", LinRange(0, 1, 100)) do s
-    sm.diffuse[] = s
-end
-sm.diffuse[] = oldspec
-
-
-
-
-#=
-
-## Title
-
-The title is created in the same way as the Julia logo is.   
-
-We take the font "Tamil MN Bold" at 48 pt, and 
-plot it in data space in an axis.  Then, we can 
-compress the axis by setting its aspect ratio,
-thus compressing the text as well!
-=#
 
 title_ax = Axis(
-    fig[0, 1];
-    backgroundcolor = :transparent,
+    fig[1, 1];
+    backgroundcolor=:transparent,
+    height=160
 )
 hidedecorations!(title_ax)
-# hidespines!(title_ax)
+hidespines!(title_ax)
 
-title_text = text!(
-    title_ax, 
-    "Geocomputation\nwith", 
-    fontsize=48, font=joinpath(@__DIR__, "TamilMNBold.ttf"), 
-    align=(:left, :center), 
-    space=:data, 
+title = text!(title_ax,
+    "Geocomputation with",
+    position=(0.5, 0.75),
+    align=(:center, :center),
+    fontsize=54,
+    font=joinpath(@__DIR__, "TamilMN-Bold.ttf"),
+    color=:white, space=:relative, )
+
+svg = SVGDocument(read(download("https://raw.githubusercontent.com/JuliaLang/julia-logo-graphics/refs/heads/master/images/julia-logo-dark.svg"), String))
+svg_plot = teximg!(title_ax, svg, position=(0.55, 0.50), align=(:center, :center), space=:relative, scale=0.40)
+
+# Main terrain visualization
+terrain_ax = Axis3(
+    fig[2, 1],
+    aspect=:equal,
+    perspectiveness=1,
+    elevation=π / 7,
+    zgridcolor=:white,
+    ygridcolor=:white,
+    xgridcolor=:white,
+    xlabel="Longitude",
+    ylabel="Latitude",
+    height=600,
+    xspinecolor_1=:white,
+    yspinecolor_1=:white,
+    zspinecolor_1=:white,
+    xspinecolor_2=:white,
+    yspinecolor_2=:white,
+    zspinecolor_2=:white,
+    xspinecolor_3=:white,
+    yspinecolor_3=:white,
+    zspinecolor_3=:white,
+);
+hidedecorations!(terrain_ax; grid=false, label=false);
+
+
+xlims!(terrain_ax, extrema(x)...)
+ylims!(terrain_ax, extrema(y)...)
+zlims!(terrain_ax, 0, zmax + 100)
+
+# Add contour lines for depth
+cp = contour!(
+    terrain_ax, dem;
+    levels=50,
+    linewidth=0.2,
+    color=:white,
+    colorrange=(zmin, zmax),
+    transparency=false,
+    alpha=0.3
 )
 
-tightlimits!(title_ax)
-axis.aspect[] = 48/40
+# Create surface plot
+sp = surface!(
+    terrain_ax, dem;
+    colormap=cmap,
+    colorrange=(zmin, zmax),
+    shading=NoShading
+)
+
+# ==============================================================================
+# AUTHORS SECTION
+# =============================================================================
+
+authors_ax = Axis(
+    fig[3, 1];
+    backgroundcolor=:transparent,
+    height=80
+)
+hidedecorations!(authors_ax)
+hidespines!(authors_ax)
+
+# Author text
+authors_text = text!(
+    authors_ax,
+    "Maarten Pronk, Rafael Schouten,\nAnshul Singhvi, and Felix Cremer",
+    position=(0.5, 0.6),
+    fontsize=18,
+    font="Arial Bold",
+    align=(:center, :center),
+    color=:white,
+    space=:relative
+)
+
+# Add subtitle indicating the series
+series_text = text!(
+    authors_ax,
+    "Part of the geocompx series",
+    position=(0.5, 0.2),
+    fontsize=14,
+    font="Arial",
+    align=(:center, :center),
+    color=:white,
+    space=:relative
+)
+
+# Ensure proper spacing between sections
+rowgap!(fig.layout, 1, 20)  # gap between title and terrain
+rowgap!(fig.layout, 2, 20)  # gap between terrain and authors
+
+display(fig)
+
+save(joinpath(dir, "geocomputation_julia_cover.pdf"), fig; px_per_unit=3)
+save(joinpath(dir, "geocomputation_julia_cover.png"), fig; px_per_unit=2)

@@ -12,6 +12,7 @@ project:
 # Stupid hack to workaround QuartoNotebookRunner bug untill
 # https://github.com/PumasAI/QuartoNotebookRunner.jl/pull/184 is merged
 endswith(pwd(), "geocompjl") || cd("..")
+ENV["DATAFRAMES_ROWS"] = 6
 ```
 
 ## Prerequisites {.unnumbered}
@@ -204,7 +205,7 @@ ax4 = Axis(fig[2, 2]; title = "Masked+Cropped")
 plot!(ax4, out_image_mask_crop)
 poly!(ax4, zion.geometry; color = :transparent, strokecolor = :black, strokewidth = 0.75)
 
-display(fig)
+display(fig);
 ```
 
 
@@ -230,7 +231,7 @@ To demonstrate extraction to points, we will use `zion_points`, which contains a
 #| fig-cap: 30 point locations within the Zion National Park, with elevation in the background
 fig, ax, plt = plot(src_srtm)
 scatter!(ax, zion_points.geometry, color=:black, strokecolor=:white, strokewidth = 1);
-display(fig)
+display(fig);
 ```
 
 
@@ -377,7 +378,7 @@ fig, ax, plt = lines(
         ylabel = "Elevation (m)",
     )
 )
-display(fig)
+display(fig);
 ```
 
 ### Extraction to polygons {#sec-extraction-to-polygons}
@@ -473,7 +474,7 @@ poly!(ax, zion.geometry; source = GI.crs(zion.geometry[1]), color = :transparent
 cm = Colorbar(fig[1, 2], plt)
 ax.xgridvisible = false
 ax.ygridvisible = false
-display(fig) # TODO: make GeoMakie better on small extents
+display(fig); # TODO: make GeoMakie better on small extents
 ```
 
 <!-- jn: what is the state of plotting categorical rasters? can it read the color palette from a file? -->
@@ -699,12 +700,12 @@ TODO: firm up the description here and add links.
 fig, ax, plt = plot(california_raster1; colormap = cgrad(:Set3; categorical = true))
 lines!(ax, california_borders; color = :darkgrey, linewidth = 1)
 scatter!(ax, vec(dp); markersize = 3, color = :black)
-display(fig)
+display(fig);
 # Polygon rasterization
 fig, ax, plt = plot(california_raster2; colormap = cgrad(:Set3; categorical = true))
 lines!(ax, california_borders; color = :darkgrey, linewidth = 1)
 scatter!(ax, vec(dp); markersize = 3, color = :black)
-fig 
+display(fig);
 ```
 
 ## Spatial vectorization {#sec-spatial-vectorization}
@@ -804,7 +805,7 @@ display(fig)
 # Points
 fig, ax, plt = plot(src_elev; alpha = 0.1)
 scatter!(ax, df.XY; color = df.layer1, strokecolor = :black, strokewidth = 1)
-fig
+display(fig);
 ```
 
 TODO: nodata pixels
@@ -856,7 +857,7 @@ Note that the raster values are average elevations based on $5 \times 5$ pixels,
 #| fig-cap: Template to calculate distance to nearest geometry (coastlines, in red)
 fig, ax, plt = plot(r)
 lines!(ax, coastline; color = :red)
-fig
+display(fig);
 ```
 
 To calculate the actual distances, we must convert each pixel to a vector (point) geometry.
@@ -894,7 +895,7 @@ The final result, a raster of distances to the nearest coastline, is shown in @f
 fig, ax, plt = plot(img)
 lines!(ax, coastline; color = :red)
 Colorbar(fig[1, 2], plt; label = "Distance to coastline (m)")
-fig
+display(fig);
 ```
 
 <!-- ## Exercises -->

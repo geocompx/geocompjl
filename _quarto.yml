@@ -5,8 +5,8 @@ project:
 
 book:
   title: "Geocomputation with Julia"
-  page-footer: "Geocomputation with Julia was written by Maarten Pronk, Rafael Schouten, Anshul Singhvi, Felix Cremer and Jakub Nowosad."
-  author: "Maarten Pronk, Rafael Schouten, Anshul Singhvi, Felix Cremer and Jakub Nowosad"
+  page-footer: "Geocomputation with Julia was written by Maarten Pronk, Rafael Schouten, Anshul Singhvi, and Felix Cremer."
+  author: "Maarten Pronk, Rafael Schouten, Anshul Singhvi, and Felix Cremer."
   description: |
     An introductory resource for working with geographic data in Julia
   cover-image: https://geocompx.org/static/img/book_cover_jl.png
@@ -60,4 +60,4 @@ format:
   #       \printindex
 
 jupyter: julia
-bibliography: geocompr.bib
+bibliography: geocompjl.bib

@@ -1,0 +1,23 @@
+name: 'Set up Julia and Quarto'
+description: 'Install all necessary Julia packages and Quarto + set up Quarto with the custom Julia environment'
+runs:
+  using: "composite"
+  steps:
+    - uses: julia-actions/setup-julia@v2
+    - uses: julia-actions/cache@v2
+    - name: Set up custom Julia dependencies
+      run: |
+        using Pkg
+        Pkg.activate("quarto"; shared = true)
+        # TODO: QuartoNotebookRunner does not support execute-dir yet, but this PR does.
+        # Once that support exists, we can remove this entire setup file,
+        # and rely on Julia 1.11's Project.toml `sources` section for all dependency specifications.
+        Pkg.add(url = "https://github.com/asinghvi17/QuartoNotebookRunner.jl", rev = "as/execute-dir")
+        Pkg.instantiate()
+        Pkg.activate(".")
+      shell: julia {0}
+    - uses: julia-actions/julia-buildpkg@v1
+    - name: Set up Quarto
+      uses: quarto-dev/quarto-actions/setup@v2
+      env:
+        QUARTO_JULIA_PROJECT: "@quarto"

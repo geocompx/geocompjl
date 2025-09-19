@@ -7,17 +7,139 @@ project:
 # Geographic data in Julia {#sec-spatial-class}
 
 ```{julia}
+#| echo: false
+#| output: false
+# Stupid hack to workaround QuartoNotebookRunner bug untill
+# https://github.com/PumasAI/QuartoNotebookRunner.jl/pull/184 is merged
+endswith(pwd(), "geocompjl") || cd("..")
+```
+
+
+```{julia}
 using Pkg
 Pkg.status()
 ```
 
 ```{julia}
 #| echo: false
+#| output: false
+ENV["DATAFRAMES_ROWS"] = 6
+Pkg.precompile(io=devnull)
+```
+
+```{julia}
+#| echo: false
+#| output: false
 mkpath("output")
 ```
 
 
 ## Introduction
+
+This chapter outlines two fundamental geographic data models --- vector and raster --- and introduces the main Julia packages for working with them.
+Before demonstrating their implementation in Julia, we will introduce the theory behind each data model and the disciplines in which they predominate.
+
+The vector data model (@sec-vector-data) represents the world using points, lines, and polygons.
+These have discrete, well-defined borders, meaning that vector datasets usually have a high level of precision (but not necessarily accuracy).
+The raster data model (@sec-raster-data), on the other hand, divides the surface up into cells of constant size.
+Raster datasets are the basis of background images used in web-mapping and have been a vital source of geographic data since the origins of aerial photography and satellite-based remote sensing devices.
+Rasters aggregate spatially specific features to a given resolution, meaning that they are consistent over space and scalable, with many worldwide raster datasets available.
+
+Which to use?
+The answer likely depends on your domain of application, and the datasets you have access to:
+
+-   Vector datasets and methods dominate the social sciences because human settlements and and processes (e.g., transport infrastructure) tend to have discrete borders.
+-   Raster datasets and methods dominate many environmental sciences because of the reliance on remote sensing data.
+
+Julia has strong support for both data models.
+We will focus on [**GeoDataFrames.jl**](https://github.com/evetion/GeoDataFrames.jl) and the [**GeoInterface.jl**](https://github.com/JuliaGeo/GeoInterface.jl) ecosystem for working with vector data, including the packages [**GeometryOps.jl**](https://github.com/JuliaGeo/GeometryOps.jl) and [**LibGEOS.jl**](https://github.com/JuliaGeo/LibGEOS.jl).
+We will focus on the [**Rasters.jl**](https://github.com/rafaqz/Rasters.jl) package for working with rasters.
+
+There is much overlap in some fields and raster and vector datasets can be used together: ecologists and demographers, for example, commonly use both vector and raster data.
+Furthermore, it is possible to convert between the two forms (see @sec-raster-vector).
+Whether your work involves more use of vector or raster datasets, it is worth understanding the underlying data models before using them, as discussed in subsequent chapters.
+
+::: {.callout-important}
+The distinction between Vector and Raster data models is rather arbitrary, and historically based on (GIS) storage formats. Rasters are structured vector datasets, and depending on the sampling can be seen as a collection of measurement points, or fields (polygons, or faces in a mesh). Modern developments, like discrete global grid systems (hierarchical meshes) or vector data cubes do not follow either data models.
+:::
+
+## Vector data {#sec-vector-data}
+
+The geographic vector data model is based on points located within a coordinate reference system (CRS).
+Points can represent self-standing features (e.g., the location of a bus stop), or they can be linked together to form more complex geometries such as lines and polygons.
+Most point geometries contain only two dimensions (3-dimensional CRSs may contain an additional $z$ value, typically representing height above sea level).
+
+In this system, London, for example, can be represented by the coordinates `(-0.1,51.5)`.
+This means that its location is -0.1 degrees east and 51.5 degrees north of the origin.
+The origin, in this case, is at 0 degrees longitude (a prime meridian located at Greenwich) and 0 degrees latitude (the Equator) in a geographic ('lon/lat') CRS (@fig-vector-london, left panel).
+The same point could also be approximated in a projected CRS with 'Easting/Northing' values of `(530000,180000)` in the British National Grid, meaning that London is located 530 $km$ East and 180 $km$ North of the origin of the CRS (@fig-vector-london, right panel).
+The location of National Grid's origin, in the sea beyond South West Peninsular, ensures that most locations in the UK have positive Easting and Northing values.
+
+
+::: {.callout-tip}
+
+The Dutch national grid not only ensures positive values for Easting and Northing, but has shifted its origin so far south that the ranges of Easting and Northing coordinates do not overlap (i.e. the origin is farther south than the Netherlands is wide).
+
+:::
+
+
+```{julia}
+#| echo: false
+#| label: fig-vector-london
+#| fig-cap: Illustration of vector (point) data in which location of London (the red X) is represented with reference to an origin (the blue circle).
+#| layout-ncol: 2
+#| fig-subcap: 
+#| - A geographic CRS with an origin at 0° longitude and latitude
+#| - A projected CRS with an origin located in the sea west of the South West Peninsula. 
+using CairoMakie
+using GeoMakie
+import GeoFormatTypes as GFT
+import GeometryOps as GO
+
+fig = Figure()
+ga1 = GeoAxis(fig[1, 1]; dest = "+proj=ortho") 
+lines!(ga1, GeoMakie.coastlines(), color=:grey)
+scatter!(ga1, (-0.1,51.5), color=:red, marker='x', markersize=20)
+scatter!(ga1, (0,0), marker=:circle, markersize=20)
+display(fig)
+
+fig = Figure()
+ga1 = Axis(fig[1, 1], limits=((-100_000, 900000), (-100_000, 1200000)), aspect=DataAspect())
+lines!(ga1, GO.reproject(GeoMakie.coastlines(10), source_crs=GFT.EPSG(4326), target_crs=GFT.EPSG(27700)), color=:grey)
+scatter!(ga1, (530000,180000), color=:red, marker='x', markersize=20)
+scatter!(ga1, (0,0), marker=:circle, markersize=20)
+display(fig);
+```
+
+Illustration of vector (point) data in which location of London (the red X) is represented with reference to an origin (the blue circle). 
+The left plot represents a geographic CRS with an origin at 0° longitude and latitude. 
+The right plot represents a projected CRS with an origin located in the sea west of the South West Peninsula.
+:::
+
+There is more to CRSs, as described in @sec-coordinate-reference-systems-intro and @sec-reproj-geo-data but, for the purposes of this section, it is sufficient to know that coordinates consist of two numbers representing the distance from an origin, usually in $x$ and $y$ dimensions.
+
+TODO: explain the JuliaGeo ecosystem like they explain geopandas
+E.g GeoInterface defines how to access any geometry, then LibGEOS (wrapping GEOS), GeometryOps, Proj, etc consume such geometries.
+
+<!--
+
+-->
+
+### Vector data classes
+
+Julia's geographic vector data model is based on the [Simple Features](https://en.wikipedia.org/wiki/Simple_Features) standard, which is an ISO standard for representing vector data. Simple Features defines types of geometries (points, lines, polygons, multipolygons, etc.), as well as "feature collections" that are basically tables of geometries associated with some data.
+
+Starting with the highest level class, feature collections come in two flavours:
+- Loaded from file (`Shapefile.Table`, `GeoJSON.FeatureCollection`, ...)
+- Tables with geometry columns (e.g. `DataFrame`, but can be any [Julia table](https://github.com/JuliaData/Tables.jl))
+
+One can easily convert from feature collections to 
+
+<!--
+
+-->
+
+
 ```{julia}
 using GeoDataFrames
 df = GeoDataFrames.read("data/world.gpkg")
@@ -25,11 +147,13 @@ df = GeoDataFrames.read("data/world.gpkg")
 
 ```{julia}
 using CairoMakie
-using GeoMakie
 
-f, a, p = poly(df.geom)
+plot(df.geometry)
 ```
 
+### Vector from scratch {#sec-vector-layer-from-scratch}
+
+## Raster data {#sec-raster-data}
 
 ### Raster from scratch {#sec-raster-from-scratch}
 
@@ -142,7 +266,10 @@ write("output/grain.tif", Raster(grain, (new_x, new_y); crs = GFT.EPSG(4326)); f
 ```
 
 As a result, the files `elev.tif` and `grain.tif` are written into the `output` directory.
-We are going to use these small raster files later on in the examples (for example, @sec-raster-subsetting).
+We are going to use these small raster files later on in the examples (for example, @sec-raster-to-polygons).
 
 Note that the transform matrices and dimensions of `elev` and `grain` are identical.
 This means that the rasters are overlapping, and can be combined into one two-band raster, processed in raster algebra operations (@sec-map-algebra), etc.
+
+## Coordinate reference systems {#sec-coordinate-reference-systems-intro}
+...

@@ -6,6 +6,15 @@ project:
 
 # Raster-vector interactions {#sec-raster-vector}
 
+```{julia}
+#| echo: false
+#| output: false
+# Stupid hack to workaround QuartoNotebookRunner bug untill
+# https://github.com/PumasAI/QuartoNotebookRunner.jl/pull/184 is merged
+endswith(pwd(), "geocompjl") || cd("..")
+ENV["DATAFRAMES_ROWS"] = 6
+```
+
 ## Prerequisites {.unnumbered}
 
 This chapter requires importing the following packages:
@@ -75,7 +84,7 @@ Since it is easier and more precise to reproject vector layers, compared to rast
 The CRS defines how the coordinates of the geometry relate to locations on the surface of the Earth.
 
 ```{julia}
-zion = GO.reproject(zion; target_crs = GI.crs(src_srtm))
+zion = GO.reproject(zion; target_crs = GI.crs(src_srtm), always_xy=true)
 ```
 
 To mask the image, i.e., convert all pixels which do not intersect with the `zion` polygon to `missing`, we use the `Rasters.mask` function.  
@@ -92,7 +101,7 @@ out_image_mask = Rasters.mask(src_srtm; with = zion)
 ## Single geometry
 
 ```{julia}
-masker = zion.geom[1]
+masker = zion.geometry[1]
 ```
 
 ```{julia}
@@ -102,7 +111,7 @@ Rasters.mask(src_srtm; with = masker)
 ## Vector of geometries
 
 ```{julia}
-masker = zion.geom
+masker = zion.geometry
 ```
 
 ```{julia}
@@ -113,7 +122,7 @@ Rasters.mask(src_srtm; with = masker)
 ## Extent taken from geometry
 
 ```{julia}
-masker = GI.extent(zion.geom[1])
+masker = GI.extent(zion.geometry[1])
 ```
 
 ```{julia}
@@ -156,7 +165,7 @@ In **Rasters.jl**, cropping and masking are distinct operations.  Cropping, whic
 Here, we simply pass the `zion` feature table to the `to` keyword argument, which indicates what to crop the raster "to".  We also set the `touches` keyword argument to `true`, to specify that pixels that partially overlap with the vector layer are included in the output.
 
 ```{julia}
-out_image_crop = Rasters.crop(src_srtm; to = zion, touches = true)
+out_image_crop = Rasters.crop(src_srtm; to = zion.geometry[1], touches = true)
 ```
 
 You can also assemble an extent manually, using `Extents.Extent`, or extract one using `GI.extent`.
@@ -182,21 +191,21 @@ fig = Figure(size = (600, 600))
 
 ax1 = Axis(fig[1, 1]; title = "Original")
 plot!(ax1, src_srtm)
-poly!(ax1, zion.geom; color = :transparent, strokecolor = :black, strokewidth = 0.75)
+poly!(ax1, zion.geometry; color = :transparent, strokecolor = :black, strokewidth = 0.75)
 
 ax2 = Axis(fig[1, 2]; title = "Masked")
 plot!(ax2, out_image_mask)
-poly!(ax2, zion.geom; color = :transparent, strokecolor = :black, strokewidth = 0.75)
+poly!(ax2, zion.geometry; color = :transparent, strokecolor = :black, strokewidth = 0.75)
 
 ax3 = Axis(fig[2, 1]; title = "Cropped")
 plot!(ax3, out_image_crop)
-poly!(ax3, zion.geom; color = :transparent, strokecolor = :black, strokewidth = 0.75)
+poly!(ax3, zion.geometry; color = :transparent, strokecolor = :black, strokewidth = 0.75)
 
 ax4 = Axis(fig[2, 2]; title = "Masked+Cropped")
 plot!(ax4, out_image_mask_crop)
-poly!(ax4, zion.geom; color = :transparent, strokecolor = :black, strokewidth = 0.75)
+poly!(ax4, zion.geometry; color = :transparent, strokecolor = :black, strokewidth = 0.75)
 
-display(fig)
+display(fig);
 ```
 
 
@@ -221,8 +230,8 @@ To demonstrate extraction to points, we will use `zion_points`, which contains a
 #| label: fig-zion-points
 #| fig-cap: 30 point locations within the Zion National Park, with elevation in the background
 fig, ax, plt = plot(src_srtm)
-scatter!(ax, zion_points.geom, color=:black, strokecolor=:white, strokewidth = 1);
-display(fig)
+scatter!(ax, zion_points.geometry, color=:black, strokecolor=:white, strokewidth = 1);
+display(fig);
 ```
 
 
@@ -287,7 +296,7 @@ First, we need to create a layer consisting of points along our line (`zion_tran
 To do that, we need to transform the line into a projected CRS (so that we work with true distances, in $m$), such as [Universal Transverse Mercator](https://en.wikipedia.org/wiki/Universal_Transverse_Mercator_coordinate_system).
 
 ```{julia}
-zion_transect_utm = GO.reproject(zion_transect; target_crs = GFT.EPSG(32612), source_crs = GFT.EPSG(4326))
+zion_transect_utm = GO.reproject(zion_transect; target_crs = GFT.EPSG(32612), source_crs = GFT.EPSG(4326), always_xy=true)
 ```
 
 The printout of the new geometry shows this is still a straight line between two points, only with coordinates in a projected CRS.
@@ -316,7 +325,7 @@ This gives us a collection of 251 points along the line.  We can extract the poi
 
 ```{julia}
 line_points = GI.getpoint(zion_transect_line)
-zion_transect_pnt = GO.reproject(line_points; target_crs = GI.crs(src_srtm), source_crs = GI.crs(zion_transect_line))
+zion_transect_pnt = GO.reproject(line_points; target_crs = GI.crs(src_srtm), source_crs = GI.crs(zion_transect_line), always_xy=true)
 ```
 
 Finally, we extract the elevation values for each point in our transect and combine the information with `zion_transect_pnt` (after "promoting" it to a `DataFrame`, to accommodate extra attributes), using the point extraction method shown earlier (@sec-extraction-to-points).
@@ -358,7 +367,7 @@ The information in `zion_transect_pnt`, namely the `"dist"` and `"elev"` attribu
 # Raster and a line transect
 fig, ax, plt = plot(src_srtm)
 lines!(ax, zion_transect; color = :black)
-poly!(ax, zion.geom; color = :transparent, strokecolor = :white, strokewidth = 0.75)
+poly!(ax, zion.geometry; color = :transparent, strokecolor = :white, strokewidth = 0.75)
 display(fig)
 # Elevation profile
 fig, ax, plt = lines(
@@ -369,7 +378,7 @@ fig, ax, plt = lines(
         ylabel = "Elevation (m)",
     )
 )
-display(fig)
+display(fig);
 ```
 
 ### Extraction to polygons {#sec-extraction-to-polygons}
@@ -439,7 +448,7 @@ The result provides useful summaries, for example that the maximum height in the
 To count occurrences of categorical raster values within polygons (@fig-raster-extract-to-polygon (b)), we can use masking (@sec-raster-cropping) combined with `StatsBase.countmap`, as follows.
 
 ```{julia}
-out_image = Rasters.mask(src_nlcd; with = GO.reproject(zion; target_crs = GI.crs(src_nlcd)))
+out_image = Rasters.mask(src_nlcd; with = GO.reproject(zion; target_crs = GI.crs(src_nlcd), always_xy=true))
 using StatsBase
 counts = StatsBase.countmap(out_image)
 ```
@@ -457,15 +466,15 @@ According to the result, for example, the value `2` ("Developed" class) appears 
 #| - Categorical raster
 # Continuous raster
 fig, ax, plt = plot(src_srtm)
-poly!(ax, zion.geom; color = :transparent, strokecolor = :black, strokewidth = 0.75)
+poly!(ax, zion.geometry; color = :transparent, strokecolor = :black, strokewidth = 0.75)
 display(fig)
 # Categorical raster
 fig, ax, plt = plot(src_nlcd; colormap = cgrad(:Set3; categorical = true), source = GI.crs(src_nlcd), axis = (; type = GeoAxis, dest = GI.crs(src_nlcd)))
-poly!(ax, zion.geom; source = GI.crs(zion.geom[1]), color = :transparent, strokecolor = :black, strokewidth = 0.75)
+poly!(ax, zion.geometry; source = GI.crs(zion.geometry[1]), color = :transparent, strokecolor = :black, strokewidth = 0.75)
 cm = Colorbar(fig[1, 2], plt)
 ax.xgridvisible = false
 ax.ygridvisible = false
-display(fig) # TODO: make GeoMakie better on small extents
+display(fig); # TODO: make GeoMakie better on small extents
 ```
 
 <!-- jn: what is the state of plotting categorical rasters? can it read the color palette from a file? -->
@@ -517,7 +526,7 @@ To demonstrate point rasterization, we will prepare a "template" raster that has
 To do that, we first take our point layer and transform it to a projected CRS.
 
 ```{julia}
-cycle_hire_osm_projected = GO.reproject(cycle_hire_osm; target_crs = GFT.EPSG(27700))
+cycle_hire_osm_projected = GO.reproject(cycle_hire_osm; target_crs = GFT.EPSG(27700), always_xy=true)
 ```
 
 We can then use the `Rasters.rasterize` function to rasterize the points.
@@ -579,7 +588,7 @@ Second, by passing the vectors of geometries and values separately.
 ```{julia}
 ch_raster3 = Rasters.rasterize(
     sum,                     # reducer
-    cycle_hire_osm_projected.geom; # data
+    cycle_hire_osm_projected.geometry; # data
     fill = cycle_hire_osm_projected.capacity, 
     crs = GI.crs(cycle_hire_osm_projected),
     size = (1000, 1000) # specify size in "pixels"
@@ -597,8 +606,8 @@ The input point layer `cycle_hire_osm_projected` and the three variants of raste
 #| - Point counts
 #| - Summed attribute values
 # Input points
-nonmissing_df = dropmissing(cycle_hire_osm_projected, [:capacity, :geom])
-f, a, p = scatter(nonmissing_df.geom; color = nonmissing_df.capacity)
+nonmissing_df = dropmissing(cycle_hire_osm_projected, [:capacity, :geometry])
+f, a, p = scatter(nonmissing_df.geometry; color = nonmissing_df.capacity)
 Colorbar(f[1, 2], p)
 display(f)
 # Presence/Absence
@@ -622,7 +631,7 @@ california = us_states[ us_states[!, "NAME"] .== "California", :]
 Second, we obtain the borders of the polygon as a `'MultiLineString'
 
 ```{julia}
-california_geom = only(california.geom)
+california_geom = only(california.geometry)
 california_borders = GI.MultiLineString(GI.LineString.(GI.getexterior.(GI.getgeom(california_geom))); crs = GI.crs(california_geom)) # TODO: make this a lot better....
 ```
 
@@ -644,7 +653,6 @@ Compare it to a polygon rasterization, with `all_touched=False` (the default), w
 california_raster2 = Rasters.rasterize(
     last, 
     california;
-    geometrycolumn = :geom,
     fill = 1,
     res = 0.5,
     boundary = :center,
@@ -692,12 +700,12 @@ TODO: firm up the description here and add links.
 fig, ax, plt = plot(california_raster1; colormap = cgrad(:Set3; categorical = true))
 lines!(ax, california_borders; color = :darkgrey, linewidth = 1)
 scatter!(ax, vec(dp); markersize = 3, color = :black)
-display(fig)
+display(fig);
 # Polygon rasterization
 fig, ax, plt = plot(california_raster2; colormap = cgrad(:Set3; categorical = true))
 lines!(ax, california_borders; color = :darkgrey, linewidth = 1)
 scatter!(ax, vec(dp); markersize = 3, color = :black)
-fig 
+display(fig);
 ```
 
 ## Spatial vectorization {#sec-spatial-vectorization}
@@ -797,7 +805,7 @@ display(fig)
 # Points
 fig, ax, plt = plot(src_elev; alpha = 0.1)
 scatter!(ax, df.XY; color = df.layer1, strokecolor = :black, strokewidth = 1)
-fig
+display(fig);
 ```
 
 TODO: nodata pixels
@@ -827,9 +835,9 @@ For the coastline, we will dissolve the New Zealand administrative division poly
 
 ```{julia}
 using LibGEOS
-coastline_linestrings = GI.getexterior.(GI.getgeom(LibGEOS.unaryUnion(GI.GeometryCollection(nz.geom)))) .|> x -> GI.LineString(collect(GI.getpoint(x)))
+coastline_linestrings = GI.getexterior.(GI.getgeom(LibGEOS.unaryUnion(GI.GeometryCollection(nz.geometry)))) .|> x -> GI.LineString(collect(GI.getpoint(x)))
 coastline = GI.MultiLineString(coastline_linestrings)
-coastline = GO.reproject(coastline; target_crs = GI.crs(src_nz_elev), source_crs = GI.crs(nz))
+coastline = GO.reproject(coastline; target_crs = GI.crs(src_nz_elev), source_crs = GI.crs(nz), always_xy=true)
 ```
 
 For a "template" raster, we will aggregate the New Zealand DEM, in the `nz_elev.tif` file, to 5 times coarser resolution.
@@ -849,7 +857,7 @@ Note that the raster values are average elevations based on $5 \times 5$ pixels,
 #| fig-cap: Template to calculate distance to nearest geometry (coastlines, in red)
 fig, ax, plt = plot(r)
 lines!(ax, coastline; color = :red)
-fig
+display(fig);
 ```
 
 To calculate the actual distances, we must convert each pixel to a vector (point) geometry.
@@ -887,7 +895,7 @@ The final result, a raster of distances to the nearest coastline, is shown in @f
 fig, ax, plt = plot(img)
 lines!(ax, coastline; color = :red)
 Colorbar(fig[1, 2], plt; label = "Distance to coastline (m)")
-fig
+display(fig);
 ```
 
 <!-- ## Exercises -->

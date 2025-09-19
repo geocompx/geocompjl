@@ -6,6 +6,15 @@ project:
 
 # Making maps with Julia {#sec-map-making}
 
+```{julia}
+#| echo: false
+#| output: false
+# Stupid hack to workaround QuartoNotebookRunner bug untill
+# https://github.com/PumasAI/QuartoNotebookRunner.jl/pull/184 is merged
+endswith(pwd(), "geocompjl") || cd("..")
+```
+
+
 ## Prerequisites {.unnumbered}
 
 This chapter requires the following packages:
@@ -31,7 +40,7 @@ It also relies on the following data files:
 nz = GeoDataFrames.read("data/nz.gpkg")
 nz_height = GeoDataFrames.read("data/nz_height.gpkg")
 nz_elev = Raster("data/nz_elev.tif")
-tanzania = filter!(
+tanzania = filter(
   :name_long => ==("Tanzania"), 
   GeoDataFrames.read("data/world.gpkg")
 )
@@ -51,8 +60,8 @@ tanzania_buf = GO.reproject(
 ```
 We can also create a dataframe of all of Tanzania's neighbours:
 ```{julia}
-tanzania_neigh = filter!(
-  :geom => x -> GO.intersects(x, only(tanzania_buf.geom)), 
+tanzania_neigh = filter(
+  :geometry => x -> GO.intersects(x, only(tanzania_buf.geometry)), 
   GeoDataFrames.read("data/world.gpkg")
 )
 ```
@@ -107,7 +116,7 @@ A minimal example of a vector layer map is obtained using `plot` with nothing bu
 ```{julia}
 #| label: fig-vector-minimal
 #| fig-cap: Minimal example of a static vector layer plot with `.plot`
-plot(nz.geom)
+plot(nz.geometry)
 ```
 
 A `Raster`, or any Julia matrix for that matter, cna be displayed using any 2D plotting function, like `heatmap` or `surface`.
@@ -131,9 +140,9 @@ The most useful visual properties of the geometries, that can be specified in pl
 #| - No fill, blue edge
 #| - Light grey fill, blue edge
 #| layout-ncol: 3
-display(poly(nz.geom; color=:lightgrey))
-display(poly(nz.geom; color=:transparent, strokecolor=:blue, strokewidth=1))
-display(poly(nz.geom; color=:lightgrey, strokecolor=:blue, strokewidth=1))
+display(poly(nz.geometry; color=:lightgrey))
+display(poly(nz.geometry; color=:transparent, strokecolor=:blue, strokewidth=1))
+display(poly(nz.geometry; color=:lightgrey, strokecolor=:blue, strokewidth=1))
 ```
 
 The next example uses `markersize` to get larger points (@fig-basic-plot-markersize).
@@ -143,7 +152,7 @@ It also demonstrates how to control the overall figure size, such as $1000 \time
 #| label: fig-basic-plot-markersize
 #| fig-cap: Setting `markersize` in a static map of a vector layer
 fig = Figure(size=(4 * 72,4 * 72))
-ax, plt = scatter(fig[1, 1], nz_height.geom, markersize=100)
+ax, plt = scatter(fig[1, 1], nz_height.geometry, markersize=100)
 fig
 ```
 
@@ -176,7 +185,7 @@ For example, @fig-plot-symbology shows the `nz` polygons colored according to th
 ```{julia}
 #| label: fig-plot-symbology
 #| fig-cap: Symbology in a static map created with `poly`
-fig, ax, plt = poly(nz.geom; color = nz.Median_income)
+fig, ax, plt = poly(nz.geometry; color = nz.Median_income)
 cb = Colorbar(fig[1, 2], plt; label = "Median income")
 fig
 ```
@@ -186,7 +195,7 @@ fig
 ```{julia}
 #| fig-cap: Symbology in a static map created with AlgebraOfGraphics.jl
 using AlgebraOfGraphics
-data(nz) * mapping(:geom; color = :Median_income) * visual(Poly) |> draw
+data(nz) * mapping(:geometry; color = :Median_income) * visual(Poly) |> draw
 ```
 :::
 

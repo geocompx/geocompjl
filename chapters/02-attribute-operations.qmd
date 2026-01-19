@@ -6,20 +6,39 @@ project:
 
 # Attribute data operations {#sec-attr}
 
+```{julia}
+#| echo: false
+#| output: false
+# Workaround for QuartoNotebookRunner bug
+# https://github.com/PumasAI/QuartoNotebookRunner.jl/pull/184
+endswith(pwd(), "geocompjl") || cd("..")
+mkpath("output")
+```
+
 ## Prerequisites {.unnumbered}
 
 This chapter requires the following packages to be installed and attached:
 
 ```{julia}
+#| output: false
 # Tabular data access and manipulation
 using DataFrames
 # Vector data access and manipulation
 using GeoDataFrames
 import GeoInterface as GI
-# Raster data access and manipulation
+# Raster data access and manipulation (requires ArchGDAL for file I/O)
 using Rasters
+import ArchGDAL
 # "Categorical" / "factor" vectors in Julia
 using CategoricalArrays
+# CSV file reading
+using CSV
+# Statistics
+using Statistics, StatsBase
+
+# Disambiguate functions exported by multiple packages
+const combine = DataFrames.combine
+const groupby = DataFrames.groupby
 ```
 
 ## Introduction
@@ -321,24 +340,258 @@ Instead, DataFrames.jl offers several ways we can do this.  First is the `subset
 small_countries = subset(world_with_area, :area_km2 => ByRow(<(10_000)))
 ```
 
-### Operations with DataFramesMeta.jl
+### Chaining operations
 
 DataFrames.jl functions are mature, stable and widely used, making them a rock solid choice, especially in contexts where reproducibility and reliability are key.
 
-Functions from the DataFrames manipulation packages mentioned earlier (DataFramesMeta.jl, TidierData.jl, and Query.jl) are also available, and quite stable at this point.  
+Functions from the DataFrames manipulation packages mentioned earlier (DataFramesMeta.jl, TidierData.jl, and Query.jl) are also available, and quite stable at this point.
 They offer "tidy" workflows which can sometimes be more intuitive and productive for interactive data analysis, as well as easier to reason about.
 
+The following example demonstrates chaining multiple operations using DataFramesMeta.jl's `@chain` macro.
+We filter Asian countries, select specific columns, and take the first 5 rows:
+
 ```{julia}
-using DataFramesMeta 
-result = @chain world_with_area begin
-    @subset @byrow (:area_km2 < 10_000)
+using DataFramesMeta
+asia_sample = @chain world begin
+    @subset(:continent .== "Asia")
+    @select(:name_long, :continent, :pop)
+    first(5)
 end
 ```
 
-You can subset and 
+This is equivalent to the following nested DataFrames.jl operations:
 
+```{julia}
+asia_sample2 = first(
+    select(
+        subset(world, :continent => ByRow(==("Asia"))),
+        [:name_long, :continent, :pop]
+    ),
+    5
+)
+```
 
+Each approach has advantages: chained operations read top-to-bottom like a pipeline, while nested operations are explicit about function composition.
+For interactive analysis, chaining is often more intuitive.
 
+### Vector attribute aggregation {#sec-vector-attribute-aggregation}
+
+Aggregation involves summarizing data based on one or more *grouping variables*, typically values in a column of the data frame to be aggregated.
+Geographic aggregation is covered in the next chapter; here we focus on attribute-based aggregation.
+
+A classic example is calculating the number of people per continent based on country-level data.
+The `world` dataset contains the necessary ingredients: the columns `pop` and `continent`, the population and the grouping variable, respectively.
+The aim is to find the `sum()` of country populations for each continent.
+
+In DataFrames.jl, attribute-based aggregation is achieved using `groupby` and `combine`:
+
+```{julia}
+world_agg1 = combine(
+    groupby(dropmissing(world, :pop), :continent),
+    :pop => sum => :total_pop
+)
+```
+
+The result is a (non-spatial) table with six rows, one per continent, and two columns reporting the name and total population of each continent.
+
+We can perform more complex aggregations by passing multiple aggregation expressions.
+The following calculates population sum, area sum, and country count per continent:
+
+```{julia}
+world_agg2 = combine(
+    groupby(dropmissing(world, [:pop, :area_km2]), :continent),
+    :pop => sum => :total_pop,
+    :area_km2 => sum => :total_area,
+    :name_long => length => :n_countries
+)
+```
+
+Using DataFramesMeta.jl, the same operation can be written more concisely:
+
+```{julia}
+world_agg3 = @chain world begin
+    dropmissing([:pop, :area_km2])
+    groupby(:continent)
+    @combine(
+        :total_pop = sum(:pop),
+        :total_area = sum(:area_km2),
+        :n_countries = length(:name_long)
+    )
+end
+```
+
+Let's extend this example by calculating population density and selecting the top 3 most populous continents:
+
+```{julia}
+top_continents = @chain world begin
+    dropmissing([:pop, :area_km2])
+    groupby(:continent)
+    @combine(
+        :total_pop = sum(:pop),
+        :total_area = sum(:area_km2),
+        :n_countries = length(:name_long)
+    )
+    @rtransform(:pop_density = :total_pop / :total_area)
+    @orderby(-:total_pop)
+    first(3)
+end
+```
+
+### Vector attribute joining {#sec-vector-attribute-joining}
+
+Combining data from different sources is a common task in data preparation.
+Joins do this by combining tables based on a shared 'key' variable.
+DataFrames.jl provides several join functions including `leftjoin`, `innerjoin`, `rightjoin`, and `outerjoin`.
+
+A common type of attribute join on spatial data is to join `DataFrames` to `GeoDataFrames`.
+In the following example, we combine data on coffee production with the `world` dataset.
+The coffee data is in a CSV file containing major coffee-producing nations:
+
+```{julia}
+using CSV
+coffee_data = CSV.read("data/coffee_data.csv", DataFrame)
+first(coffee_data, 5)
+```
+
+Its columns are `name_long` (country name), and `coffee_production_2016` and `coffee_production_2017` (estimated values for coffee production in units of 60-kg bags per year).
+
+A left join preserves all rows from the first dataset and adds matching columns from the second:
+
+```{julia}
+world_coffee = leftjoin(world, coffee_data, on = :name_long)
+```
+
+The result is a `DataFrame` with the same number of rows as `world` (177), but with two new columns for coffee production.
+Countries without coffee production data have `missing` values in these columns.
+
+We can check how many countries have coffee data:
+
+```{julia}
+coffee_countries = dropmissing(world_coffee, :coffee_production_2017)
+println("Countries with 2017 coffee data: $(nrow(coffee_countries))")
+```
+
+What if we only want to keep countries that have a match in the key variable?
+An inner join keeps only rows with matches in both datasets:
+
+```{julia}
+world_coffee_inner = innerjoin(world, coffee_data, on = :name_long)
+println("Rows after inner join: $(nrow(world_coffee_inner))")
+```
+
+Note that the inner join has fewer rows than `coffee_data` (47 rows).
+This is because some country names don't match exactly.
+We can identify the mismatches:
+
+```{julia}
+coffee_names = Set(coffee_data.name_long)
+world_names = Set(world.name_long)
+setdiff(coffee_names, world_names)
+```
+
+The "Congo, Dem. Rep. of" name doesn't match the `world` dataset's naming convention.
+We can fix this by updating the coffee data before joining:
+
+```{julia}
+# Find the correct name in world
+drc_name = filter(n -> occursin("Dem", n) && occursin("Congo", n), world.name_long)
+println("DRC name in world: $drc_name")
+
+# Create a corrected copy
+coffee_fixed = copy(coffee_data)
+coffee_fixed.name_long = replace.(coffee_fixed.name_long, "Congo, Dem. Rep. of" => first(drc_name))
+
+# Now the inner join captures one more country
+world_coffee_fixed = innerjoin(world, coffee_fixed, on = :name_long)
+println("Rows after fix: $(nrow(world_coffee_fixed))")
+```
+
+::: {.callout-note}
+## Join column names
+
+When the key columns have different names in each dataset, use the `on` argument with a `Pair`:
+
+```julia
+leftjoin(df1, df2, on = :name_in_df1 => :name_in_df2)
+```
+:::
+
+### Creating attributes and removing spatial information {#sec-vec-attr-creation}
+
+Often, we want to create new columns based on existing ones.
+For example, calculating population density for each country requires dividing population by area.
+
+In base Julia, we can add a new column directly:
+
+```{julia}
+world2 = copy(world)  # don't modify the original
+world2.pop_density = world2.pop ./ world2.area_km2
+select(world2, :name_long, :pop, :area_km2, :pop_density) |> first
+```
+
+Note the broadcasting operator `.` in `./` — this is essential for element-wise division in Julia.
+
+Using DataFramesMeta.jl's `@rtransform` macro (row-wise transform):
+
+```{julia}
+world3 = @chain world begin
+    @rtransform(:pop_density = :pop / :area_km2)
+    @select(:name_long, :pop, :area_km2, :pop_density)
+end
+first(world3, 3)
+```
+
+To combine existing columns into a new one, we can use string interpolation or concatenation:
+
+```{julia}
+world4 = @chain world begin
+    @rtransform(:con_reg = :continent * ":" * :region_un)
+    @select(:name_long, :continent, :region_un, :con_reg)
+end
+first(world4, 3)
+```
+
+The opposite operation — splitting one column into multiple — uses the `split` function:
+
+```{julia}
+# Split the combined column back
+world5 = @chain world4 begin
+    @rtransform(
+        :continent_new = split(:con_reg, ":")[1],
+        :region_new = split(:con_reg, ":")[2]
+    )
+    @select(:name_long, :con_reg, :continent_new, :region_new)
+end
+first(world5, 3)
+```
+
+Renaming columns is done with the `rename` function:
+
+```{julia}
+world_renamed = rename(world, :name_long => :name, :pop => :population)
+names(world_renamed)
+```
+
+To rename all columns at once, assign to the `names!` function:
+
+```{julia}
+world_short = copy(world)
+rename!(world_short, names(world_short) .=> [:geom, :iso, :name, :cont, :reg, :subreg, :type, :area, :pop, :life, :gdp])
+names(world_short)
+```
+
+Each of these attribute operations preserves the geometry column.
+Sometimes, however, it makes sense to remove the geometry — for example, to speed up aggregation or to export just the attribute data.
+
+To drop the geometry column, subset to exclude it:
+
+```{julia}
+geom_cols = GI.geometrycolumns(world)
+world_df = select(world, Not(geom_cols...))
+typeof(world_df)
+```
+
+The result is a regular `DataFrame` without spatial information.
 
 
 
@@ -417,13 +670,179 @@ Rasters.jl does not currently support color tables in rasters.  This should come
 
 ### Raster subsetting
 
-Raster subsetting is done with the Julia `getindex` syntax (square brackets), in the same way as we used it to subset DataFrames.  
-Raster selection is, however, far more powerful, since you can use [selectors](https://rafaqz.github.io/DimensionalData.jl/stable/) to select various spatial subsets of the raster, like `At`, `Near`, and `Between`.
+Raster subsetting is done with the Julia `getindex` syntax (square brackets), in the same way as we used it to subset DataFrames.
+Raster selection is, however, far more powerful, since you can use [selectors](https://rafaqz.github.io/DimensionalData.jl/stable/) to select various spatial subsets of the raster, like `Near`, `At`, `Between`, and `..` (interval).
+
+The `Near` selector finds the nearest cell to the specified coordinate — this is often the most practical choice:
 
 ```{julia}
-elev[X(At(1)), Y(At(1))]
 elev[X(Near(0)), Y(Near(0))]
+```
+
+The `At` selector returns the value at an exact coordinate.
+It requires the coordinate to match precisely, which can be tricky with floating-point values:
+
+```{julia}
+# Get exact coordinate values from the lookup
+x_coords = lookup(elev, X)
+y_coords = lookup(elev, Y)
+println("X coordinates: ", collect(x_coords))
+```
+
+```{julia}
+# Use the exact value from the lookup
+elev[X(At(x_coords[2])), Y(At(y_coords[2]))]
+```
+
+The `..` operator (from IntervalSets.jl, re-exported by DimensionalData.jl) selects a range of values:
+
+```{julia}
 elev[X(-1..0), Y(0..1)]
 ```
 
-Of course, you can 
+This returns a smaller raster containing only the cells within the specified coordinate ranges.
+
+You can also use integer indices directly, just like with arrays:
+
+```{julia}
+elev[1, 1]  # top-left cell
+elev[1:3, 1:3]  # 3x3 subset from top-left
+```
+
+Cell values can be modified by combining subsetting with assignment.
+The following sets the top-left cell to 0:
+
+```{julia}
+elev_modified = copy(elev)
+elev_modified[1, 1] = 0
+elev_modified[1:3, 1]  # check the first column
+```
+
+Multiple cells can be modified at once:
+
+```{julia}
+elev_modified[1, 1:3] .= 0  # set first row, columns 1-3 to 0
+elev_modified[1:3, 1:3]
+```
+
+::: {.callout-note}
+## Raster dimensions
+
+Unlike numpy arrays (Python) where dimensions are typically `(rows, columns)` or `(y, x)`, Rasters.jl uses named dimensions.
+When you write `elev[X(...), Y(...)]`, you're explicitly specifying which dimension you're selecting on, making the code more readable and less error-prone.
+
+You can check a raster's dimensions with `dims(elev)`.
+:::
+
+### Summarizing raster objects {#sec-summarizing-raster-objects}
+
+Julia's standard library and ecosystem provide many functions for summarizing raster values.
+Since Rasters.jl rasters behave like arrays, standard functions work directly:
+
+```{julia}
+using Statistics
+
+mean(elev)
+```
+
+```{julia}
+std(elev)
+```
+
+```{julia}
+minimum(elev), maximum(elev)
+```
+
+For a quick summary, we can combine these:
+
+```{julia}
+println("Elevation statistics:")
+println("  Min: $(minimum(elev))")
+println("  Max: $(maximum(elev))")
+println("  Mean: $(round(mean(elev), digits=2))")
+println("  Std: $(round(std(elev), digits=2))")
+```
+
+When rasters contain missing values (`missing` in Julia), use the `skipmissing` function:
+
+```{julia}
+# Create a raster with missing values by first converting to a Union type
+vals_missing = convert(Array{Union{Missing, Int}, 2}, collect(reshape(1:36, 6, 6)))
+elev_with_missing = Raster(vals_missing, (X(LinRange(-1.5, 1.5, 6)), Y(LinRange(-1.5, 1.5, 6))))
+elev_with_missing[1, 1] = missing
+mean(skipmissing(elev_with_missing))
+```
+
+For categorical rasters, we can calculate frequency tables.
+First, let's reload the grain raster from file (as an integer-coded raster):
+
+```{julia}
+import ArchGDAL
+grain_int = Raster("output/grain.tif")
+```
+
+To get the frequency of each category:
+
+```{julia}
+using StatsBase
+counts = countmap(vec(grain_int))
+```
+
+Raster value statistics can be visualized in various ways.
+A histogram shows the distribution of values in a continuous raster:
+
+```{julia}
+#| label: fig-raster-hist
+#| fig-cap: Distribution of cell values in a continuous raster (`elev`)
+using CairoMakie
+
+fig = Figure(size=(600, 400))
+ax = Axis(fig[1, 1], xlabel="Elevation", ylabel="Frequency", title="Elevation Distribution")
+hist!(ax, vec(elev), bins=10)
+fig
+```
+
+For categorical rasters, a bar plot is more appropriate:
+
+```{julia}
+#| label: fig-raster-bar
+#| fig-cap: Distribution of cell values in a categorical raster (`grain`)
+grain_labels = ["clay", "silt", "sand"]
+grain_counts = [count(==(i), vec(grain_int)) for i in 1:3]
+
+fig = Figure(size=(600, 400))
+ax = Axis(fig[1, 1],
+    xlabel="Grain type",
+    ylabel="Count",
+    title="Grain Type Distribution",
+    xticks=(1:3, grain_labels)
+)
+barplot!(ax, 1:3, grain_counts)
+fig
+```
+
+::: {.callout-note}
+## Global vs local operations
+
+The summary statistics shown here are *global* operations — they summarize the entire raster into a single value or set of values.
+In contrast, *local* operations (covered in the next chapter) compute values for each cell based on its neighbors or corresponding cells in other layers.
+:::
+
+## Exercises
+
+```{julia}
+#| echo: false
+#| output: false
+# Exercises would go here
+```
+
+1. Create a new column in the `world` dataset called `pop_millions` that contains the population in millions (divide `pop` by 1,000,000). Which country has the highest population?
+
+2. Using `groupby` and `combine`, calculate the mean life expectancy (`lifeExp`) by continent. Which continent has the highest average life expectancy?
+
+3. Perform an inner join between `world` and `coffee_data`. How many rows are in the result? Why is this different from the number of rows in `coffee_data`?
+
+4. Create a 10x10 raster with random values between 0 and 100. Calculate its mean, median, and standard deviation.
+
+5. Subset the `elev` raster to only include cells where the elevation is greater than 20. How many cells remain?
+

@@ -29,8 +29,10 @@ jobs:
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
-      - name: Render Quarto site
-        run: xvfb-run -a -s '-screen 0 1024x768x24' quarto render --to html
+      - name: Render
+        uses: quarto-dev/quarto-actions/render@v2
+        with:
+          to: html
 
       - name: Deploy Preview to Netlify as preview
         id: netlify-deploy

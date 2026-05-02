@@ -27,14 +27,10 @@ jobs:
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
-      - name: Render Quarto site
-        run: xvfb-run -a -s '-screen 0 1024x768x24' quarto render
-
-      - name: Publish to Netlify
+      - name: Render and Publish
         uses: quarto-dev/quarto-actions/publish@v2
         with:
           target: netlify
-          render: false
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
 
       - name: Show QuartoNotebookRunner server log

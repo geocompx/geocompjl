@@ -31,12 +31,48 @@ jobs:
       - name: Install QuartoNotebookRunner into @quarto environment
         run: julia --project=@quarto -e 'import Pkg; Pkg.add("QuartoNotebookRunner"); Pkg.precompile()'
 
-      - name: Start QuartoNotebookRunner server
+      - name: Start QuartoNotebookRunner server (under xvfb)
         run: |
-          nohup xvfb-run -a -s '-screen 0 1024x768x24' julia --project=@quarto \
-            -e 'import QuartoNotebookRunner; QuartoNotebookRunner.serve(; port = 0)' \
-            > qnr-server.log 2>&1 &
+          set -euo pipefail
+          # Match Quarto's transport-file path so `quarto render` reuses our server
+          # (see quarto-cli julia-engine.ts: juliaTransportFile()).
+          if [ -n "${XDG_RUNTIME_DIR:-}" ]; then
+            QNR_RUNTIME_DIR="$XDG_RUNTIME_DIR/julia"
+          else
+            QNR_RUNTIME_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/quarto/julia"
+          fi
+          mkdir -p "$QNR_RUNTIME_DIR"
+          TRANSPORT_FILE="$QNR_RUNTIME_DIR/julia_transport.txt"
+          rm -f "$TRANSPORT_FILE"
+          export QNR_TRANSPORT_FILE="$TRANSPORT_FILE"
+
+          cat > /tmp/start_qnr.jl <<'JL'
+          using QuartoNotebookRunner
+          transport_file = ENV["QNR_TRANSPORT_FILE"]
+          atexit(() -> rm(transport_file; force = true))
+          server = QuartoNotebookRunner.serve(; timeout = 300)
+          open(transport_file, "w") do io
+              println(io, """{"port": $(server.port), "pid": $(Base.Libc.getpid()), "key": "$(server.key)"}""")
+          end
+          @info "QNR server listening on port $(server.port)"
+          wait(server)
+          JL
+
+          nohup xvfb-run -a -s '-screen 0 1024x768x24' \
+            julia --project=@quarto /tmp/start_qnr.jl > qnr-server.log 2>&1 &
           echo "QNR_PID=$!" >> "$GITHUB_ENV"
+
+          for i in $(seq 1 60); do
+            if [ -f "$TRANSPORT_FILE" ]; then
+              echo "Transport file ready after ${i}s:"
+              cat "$TRANSPORT_FILE"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Transport file did not appear in 60s; QNR server may have failed to start"
+          tail -100 qnr-server.log || true
+          exit 1
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2

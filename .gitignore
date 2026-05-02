@@ -12,3 +12,7 @@ docs
 /_site/
 output/*
 Manifest.toml
+
+**/*.quarto_ipynb
+
+reference/

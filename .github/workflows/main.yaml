@@ -11,16 +11,55 @@ jobs:
     permissions:
       contents: write
       statuses: write
+    env:
+      DISPLAY: ':0'
+      QUARTO_JULIA_PROJECT: '@quarto'
+      DATADEPS_ALWAYS_ACCEPT: 'true'
     steps:
       - uses: actions/checkout@v5
+
+      - name: Install system dependencies for headless rendering
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xorg-dev mesa-utils xvfb libgl1 freeglut3-dev \
+            libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxext-dev
+
       - uses: julia-actions/setup-julia@v2
       - uses: julia-actions/cache@v2
       - uses: julia-actions/julia-buildpkg@v1
 
+      - name: Install QuartoNotebookRunner into @quarto environment
+        run: julia --project=@quarto -e 'import Pkg; Pkg.add("QuartoNotebookRunner"); Pkg.precompile()'
+
+      - name: Start QuartoNotebookRunner server
+        run: |
+          nohup xvfb-run -a -s '-screen 0 1024x768x24' julia --project=@quarto \
+            -e 'import QuartoNotebookRunner; QuartoNotebookRunner.serve(; port = 1234)' \
+            > qnr-server.log 2>&1 &
+          echo "QNR_PID=$!" >> "$GITHUB_ENV"
+          for i in $(seq 1 60); do
+            if (echo > /dev/tcp/127.0.0.1/1234) 2>/dev/null; then
+              echo "QNR server listening on :1234 after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "QNR server did not start in 60s; continuing anyway"
+          tail -50 qnr-server.log || true
+
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
-      - name: Render and Publish 
+
+      - name: Render Quarto site
+        run: xvfb-run -a -s '-screen 0 1024x768x24' quarto render
+
+      - name: Publish to Netlify
         uses: quarto-dev/quarto-actions/publish@v2
         with:
           target: netlify
+          render: false
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+
+      - name: Show QuartoNotebookRunner server log
+        if: always()
+        run: cat qnr-server.log 2>/dev/null || true

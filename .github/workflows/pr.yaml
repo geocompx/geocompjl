@@ -24,7 +24,7 @@ jobs:
       - uses: julia-actions/cache@v2
       - uses: julia-actions/julia-buildpkg@v1
 
-      - uses: ./.github/actions/setup-qnr
+      - uses: ./.github/actions/setup-quartonotebookrunner-jl
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2

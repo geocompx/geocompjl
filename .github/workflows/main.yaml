@@ -11,16 +11,28 @@ jobs:
     permissions:
       contents: write
       statuses: write
+    env:
+      DISPLAY: ':0'
+      QUARTO_JULIA_PROJECT: '@quarto'
+      DATADEPS_ALWAYS_ACCEPT: 'true'
     steps:
       - uses: actions/checkout@v5
+
       - uses: julia-actions/setup-julia@v2
       - uses: julia-actions/cache@v2
       - uses: julia-actions/julia-buildpkg@v1
 
+      - uses: ./.github/actions/setup-quartonotebookrunner-jl
+
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
-      - name: Render and Publish 
+
+      - name: Render and Publish
         uses: quarto-dev/quarto-actions/publish@v2
         with:
           target: netlify
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+
+      - name: Show QuartoNotebookRunner server log
+        if: always()
+        run: cat qnr-server.log 2>/dev/null || true

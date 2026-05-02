@@ -1,0 +1,3 @@
+[build]
+  publish = "docs"
+  ignore = "exit 0"

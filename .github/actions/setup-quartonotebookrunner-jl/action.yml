@@ -1,0 +1,79 @@
+name: 'Set up QuartoNotebookRunner'
+description: >
+  Install QuartoNotebookRunner.jl into the @quarto named environment and start
+  it under xvfb-run, writing the transport file at the path Quarto reads, so
+  `quarto render` reuses our pre-started server.
+inputs:
+  timeout:
+    description: 'Idle timeout passed to QuartoNotebookRunner.serve (seconds).'
+    required: false
+    default: '300'
+  screen:
+    description: 'xvfb-run -s screen geometry.'
+    required: false
+    default: '-screen 0 1024x768x24'
+  wait-seconds:
+    description: 'How long to wait for the transport file to appear before failing.'
+    required: false
+    default: '60'
+runs:
+  using: 'composite'
+  steps:
+    - name: Install system dependencies for headless rendering
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y xorg-dev mesa-utils xvfb libgl1 freeglut3-dev \
+          libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxext-dev
+
+    - name: Install QuartoNotebookRunner into @quarto environment
+      shell: bash
+      run: julia --project=@quarto -e 'import Pkg; Pkg.add("QuartoNotebookRunner"); Pkg.precompile()'
+
+    - name: Start QuartoNotebookRunner server (under xvfb)
+      shell: bash
+      env:
+        QNR_TIMEOUT: ${{ inputs.timeout }}
+        XVFB_SCREEN: ${{ inputs.screen }}
+        QNR_WAIT_SECONDS: ${{ inputs.wait-seconds }}
+      run: |
+        set -euo pipefail
+        # Match Quarto's transport-file path so `quarto render` reuses our server
+        # (see quarto-cli julia-engine.ts: juliaTransportFile()).
+        if [ -n "${XDG_RUNTIME_DIR:-}" ]; then
+          QNR_RUNTIME_DIR="$XDG_RUNTIME_DIR/julia"
+        else
+          QNR_RUNTIME_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/quarto/julia"
+        fi
+        mkdir -p "$QNR_RUNTIME_DIR"
+        TRANSPORT_FILE="$QNR_RUNTIME_DIR/julia_transport.txt"
+        rm -f "$TRANSPORT_FILE"
+        export QNR_TRANSPORT_FILE="$TRANSPORT_FILE"
+
+        cat > /tmp/start_qnr.jl <<JL
+        using QuartoNotebookRunner
+        transport_file = ENV["QNR_TRANSPORT_FILE"]
+        atexit(() -> rm(transport_file; force = true))
+        server = QuartoNotebookRunner.serve(; timeout = ${QNR_TIMEOUT})
+        open(transport_file, "w") do io
+            println(io, """{"port": \$(server.port), "pid": \$(Base.Libc.getpid()), "key": "\$(server.key)"}""")
+        end
+        @info "QNR server listening on port \$(server.port)"
+        wait(server)
+        JL
+
+        nohup xvfb-run -a -s "${XVFB_SCREEN}" \
+          julia --project=@quarto /tmp/start_qnr.jl > qnr-server.log 2>&1 &
+        echo "QNR_PID=$!" >> "$GITHUB_ENV"
+
+        for i in $(seq 1 "${QNR_WAIT_SECONDS}"); do
+          if [ -f "$TRANSPORT_FILE" ]; then
+            echo "Transport file ready after ${i}s:"
+            cat "$TRANSPORT_FILE"
+            exit 0
+          fi
+          sleep 1
+        done
+        echo "Transport file did not appear in ${QNR_WAIT_SECONDS}s; QNR server may have failed to start"
+        tail -100 qnr-server.log || true
+        exit 1

@@ -7,3 +7,50 @@ project:
 # Spatial data operations {#sec-spatial-operations}
 
 ## Prerequisites {.unnumbered}
+
+
+This chapter requries the following packages to be installed:
+
+```{julia}
+# Raster data access and manipulation
+using Rasters
+# Tif data access
+using ArchGDAL
+```
+
+It also depends on the following data files:
+
+```{julia}
+src_elev = Raster("output/elev.tif")
+```
+
+
+## Spatial operations on raster data
+
+This section is an extension of [Section 2.3] which highlights various basic methods for manipulating raster datasets.
+In this chapter we demonstrate more advanced and specifically spatial raster operations using the `eliv.tif` and `grain.tif` rasters manually created in [Section 1.3.2]
+
+### Spatial Subsetting
+
+We can select values from a Raster by the location in the grid. 
+To use the location information and not the row and column number for indexing we use Selectors to indicate how we want to select the values.
+Here we use the `Near` selector to get the closest value in the grid to the selection value. 
+```{julia}
+
+src_elev[X=Near(0.5), Y=Near(0.5)]
+``` 
+
+We can also select multiple positions at once using an Interval which can be constructed as `a..b`.
+We can freely mix different selectors for different dimensions.
+
+```{julia}
+src_elve[X=1..3, Y=At(0.5)]
+```
+
+```{julia}
+
+```
+
+```{julia}
+
+```

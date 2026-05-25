@@ -13,17 +13,25 @@ jobs:
       statuses: write
       pull-requests: write
       deployments: write
+    env:
+      DISPLAY: ':0'
+      QUARTO_JULIA_PROJECT: '@quarto'
+      DATADEPS_ALWAYS_ACCEPT: 'true'
     steps:
-      - uses: actions/checkout@v3
-      - uses: julia-actions/setup-julia@v2
-      - uses: julia-actions/cache@v2
+      - uses: actions/checkout@v6
+
+      - uses: julia-actions/setup-julia@v3
+      - uses: julia-actions/cache@v3
       - uses: julia-actions/julia-buildpkg@v1
+
+      - uses: ./.github/actions/setup-quartonotebookrunner-jl
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
-      - name: Render 
+
+      - name: Render
         uses: quarto-dev/quarto-actions/render@v2
-        with: 
+        with:
           to: html
 
       - name: Deploy Preview to Netlify as preview
@@ -45,3 +53,7 @@ jobs:
           enable-commit-status: true
           overwrites-pull-request-comment: true
         timeout-minutes: 1
+
+      - name: Show QuartoNotebookRunner server log
+        if: always()
+        run: cat qnr-server.log 2>/dev/null || true

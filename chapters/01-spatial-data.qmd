@@ -114,7 +114,6 @@ display(fig);
 Illustration of vector (point) data in which location of London (the red X) is represented with reference to an origin (the blue circle). 
 The left plot represents a geographic CRS with an origin at 0° longitude and latitude. 
 The right plot represents a projected CRS with an origin located in the sea west of the South West Peninsula.
-:::
 
 There is more to CRSs, as described in @sec-coordinate-reference-systems-intro and @sec-reproj-geo-data but, for the purposes of this section, it is sufficient to know that coordinates consist of two numbers representing the distance from an origin, usually in $x$ and $y$ dimensions.
 

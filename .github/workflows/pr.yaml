@@ -18,7 +18,7 @@ jobs:
       QUARTO_JULIA_PROJECT: '@quarto'
       DATADEPS_ALWAYS_ACCEPT: 'true'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: julia-actions/setup-julia@v3
       - uses: julia-actions/cache@v3
@@ -36,7 +36,7 @@ jobs:
 
       - name: Deploy Preview to Netlify as preview
         id: netlify-deploy
-        uses: nwtgck/actions-netlify@v3
+        uses: nwtgck/actions-netlify@v4
         env:
           NETLIFY_SITE_ID: e18690e5-215e-4584-b0f1-963bc99a10d0
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
